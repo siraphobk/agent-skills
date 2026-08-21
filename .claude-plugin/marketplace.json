@@ -1,0 +1,15 @@
+{
+  "name": "siraphobk",
+  "owner": {
+    "name": "siraphobk",
+    "url": "https://github.com/siraphobk"
+  },
+  "plugins": [
+    {
+      "name": "agent-skills",
+      "source": "./",
+      "description": "Planning, diagnosis, GitHub and review workflows",
+      "category": "workflow"
+    }
+  ]
+}

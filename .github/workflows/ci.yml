@@ -1,0 +1,57 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y bats shellcheck
+
+      - name: Install tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install bats-core shellcheck
+
+      # -x follows the helper install.sh sources; without it shellcheck cannot
+      # see scripts/frontmatter.sh and reports SC1091 instead of checking it.
+      - name: Lint shell
+        run: shellcheck -x install.sh scripts/*.sh tests/helpers.bash
+
+      # A malformed skill does not error at runtime — it silently stops triggering.
+      - name: Validate skills
+        run: scripts/validate.sh
+
+      - name: Test install.sh and validate.sh
+        run: bats tests/
+
+      # The scripts claim to target bash 3.2 so they run on stock macOS. That claim is
+      # worth nothing unless something actually runs them under 3.2 — Homebrew's newer
+      # bash is on PATH here, so `env bash` would quietly test the wrong interpreter.
+      - name: Run under stock bash 3.2
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          /bin/bash --version | head -n 1
+          for f in install.sh scripts/validate.sh scripts/frontmatter.sh; do
+            /bin/bash -n "$f"
+          done
+          /bin/bash scripts/validate.sh
+          /bin/bash ./install.sh --list >/dev/null
+          tmp=$(mktemp -d)
+          HOME="$tmp" /bin/bash ./install.sh --agents
+          test -d "$tmp/.agents/skills"
+          HOME="$tmp" /bin/bash ./install.sh --doctor --agents
+          HOME="$tmp" /bin/bash ./install.sh --uninstall --agents
