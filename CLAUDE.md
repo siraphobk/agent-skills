@@ -51,8 +51,9 @@ after detecting the agent. `skills/self-improve/` is the worked example.
 
 ```sh
 scripts/validate.sh                                  # skill well-formedness
+claude plugin validate . --strict                    # plugin + marketplace manifests
 shellcheck -x install.sh scripts/*.sh tests/helpers.bash   # shell lint
-bats tests/                                          # install.sh and validate.sh behaviour
+bats tests/                                          # install.sh, validate.sh, version.sh
 ```
 
 `tests/validate.bats` proves every check in `validate.sh` *fires* on bad input, not just
@@ -61,3 +62,22 @@ from a dead one. When you add a check, add the test that breaks it.
 
 `install.sh` targets bash 3.2 so it runs on stock macOS — no associative arrays, no
 `mapfile`.
+
+## Releasing
+
+Merge everything you want to ship, then publish a GitHub Release with a `vX.Y.Z` tag. The
+`release` workflow reads that tag, writes the version into `.claude-plugin/plugin.json`, and
+pushes the commit to `main` on its own — that is the only place the version lives, and the
+only thing that should ever write it is `scripts/version.sh`.
+
+Two things fail silently if you work around this:
+
+- **A version that never moves keeps installed users on the old copy.** Claude Code pins a
+  plugin to the version string in `plugin.json` and only offers an update when it changes, so
+  shipping new skills under an unchanged version means nobody receives them.
+- **The bump commit does not run `ci.yml`.** GitHub suppresses workflow runs for pushes made
+  with `GITHUB_TOKEN`, which is what keeps the release workflow from re-triggering itself. The
+  workflow runs `claude plugin validate . --strict` itself to cover the change it makes.
+
+The workflow refuses a tag that is not a version and a version below the one already there,
+and does nothing at all if the manifest already matches — so a re-run is always safe.

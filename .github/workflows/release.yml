@@ -1,0 +1,63 @@
+name: release
+
+# The version the marketplace advertises lives in .claude-plugin/plugin.json, and Claude Code
+# pins installed users to whatever string is there until it changes. Publishing the Release
+# stays a manual, deliberate step; this workflow is only what stops the manifest from being
+# left behind when it happens.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      # The default ref on a release event is the tag itself, and a commit there would go
+      # nowhere. The marketplace resolves the version from the default branch, so that is
+      # where the bump has to land.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Read the version from the release tag
+        id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: echo "version=$(scripts/version.sh --parse-tag "$TAG")" >>"$GITHUB_OUTPUT"
+
+      # Refuses a version that would move backwards, and is a no-op when the manifest already
+      # says this, which is what makes re-running the workflow harmless.
+      - name: Write it to the manifest
+        run: scripts/version.sh --set "${{ steps.version.outputs.version }}"
+
+      - name: Check whether anything changed
+        id: changed
+        run: |
+          if git diff --quiet -- .claude-plugin/plugin.json; then
+            echo "changed=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >>"$GITHUB_OUTPUT"
+          fi
+
+      # A GITHUB_TOKEN push does not trigger ci.yml — that suppression is what stops this
+      # workflow from re-triggering itself. Nothing in ci.yml reads the manifests anyway, so
+      # this is the check that actually covers the line being changed.
+      - name: Validate the manifests
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude plugin validate . --strict
+
+      - name: Commit and push
+        if: steps.changed.outputs.changed == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: set plugin version to $VERSION" -- .claude-plugin/plugin.json
+          git push origin main
