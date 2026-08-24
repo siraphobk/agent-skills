@@ -18,7 +18,7 @@ Branch: `chore/release_version_automation`
 - AC-4 **script level only** — `--set 0.0.1` against `0.2.0` exited 1 ("refusing to move the version backwards") and left the manifest at `0.2.0`. Same caveat as AC-2.
 - AC-5 met — `--parse-tag nightly` exits 1 before anything is written, so the workflow fails at its first step with the manifest untouched.
 - AC-6 met — `claude plugin validate . --strict` → exit 0 (it was exit 1 before Phase 1).
-- AC-7 **not yet proved** — the `manifest` job exists and is well-formed, but it has never run. The PR opened from this branch is its first execution.
+- AC-7 met — the `manifest` job ran for the first time on PR #2 and passed in 9s on both runs, so `npm install -g @anthropic-ai/claude-code` plus `claude plugin validate . --strict` works on a runner with no authenticated session.
 
 ## Changes by phase
 
@@ -49,7 +49,6 @@ Gate: `scripts/validate.sh` → exit 0. Also folded `claude plugin validate . --
 ## Not done / follow-ups
 
 - **AC-2, AC-3, AC-4 need a real release to close.** They are proved at the script level only. The first real check is publishing a Release after this merges; the plan's `(manual)` verification lines describe exactly what to watch.
-- **AC-7 closes when CI runs on this PR.** If the `manifest` job goes red on the `npm install -g @anthropic-ai/claude-code` step, the fallback is a plain JSON parse — that catches a mangled manifest but not a `plugin.json` / marketplace-entry version disagreement.
 - **The existing `v0.1.0` and `v0.1.1` tags stay as they are**, per the plan's non-goals. They do not match the `agent-skills--v<version>` form `claude plugin tag` and Claude Code's dependency resolver use, which only matters if another plugin ever declares a version-ranged dependency on this one.
 
 ## Verification output
@@ -73,3 +72,5 @@ re-run same version           version.sh: already at 0.2.0, nothing to write   e
 --set 0.0.1                   refusing to move the version backwards           exit 1, manifest 0.2.0
 --parse-tag nightly           does not name a semver version                   exit 1, manifest 0.2.0
 ```
+
+CI on PR #2: `check (ubuntu-latest)`, `check (macos-latest)`, and `manifest` all pass.
