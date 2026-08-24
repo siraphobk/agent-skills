@@ -1,5 +1,6 @@
 {
   "name": "siraphobk",
+  "description": "Planning, diagnosis, GitHub and review workflows for Claude Code and Cursor",
   "owner": {
     "name": "siraphobk",
     "url": "https://github.com/siraphobk"

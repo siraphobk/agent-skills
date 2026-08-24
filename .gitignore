@@ -2,3 +2,6 @@
 .DS_Store
 *.swp
 *~
+
+# Agent scratch output — plans, deliverables, reports. Local only.
+.agents/scratch/

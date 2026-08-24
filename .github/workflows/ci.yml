@@ -55,3 +55,19 @@ jobs:
           test -d "$tmp/.agents/skills"
           HOME="$tmp" /bin/bash ./install.sh --doctor --agents
           HOME="$tmp" /bin/bash ./install.sh --uninstall --agents
+
+  # Nothing in the check job reads .claude-plugin/*.json, so a malformed or incoherent
+  # manifest would otherwise reach main unchallenged — which is how a release once shipped
+  # with the advertised version left at the previous one.
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      # --strict also fails on the plugin.json / marketplace-entry disagreements the runtime
+      # tolerates silently.
+      - name: Validate plugin and marketplace manifests
+        run: claude plugin validate . --strict
