@@ -98,18 +98,3 @@ Three arrangements, in order of preference:
 
 Whichever you pick, name it in the Phase 3 proposal — the reviewer needs to know why the code they
 are reading appears to be called by nothing.
-
-## Publishing without gh-stack
-
-Phase 5 hands off to `github-pr-create`, which opens the stack natively. When the `gh-stack`
-extension is missing, chain them by hand instead — bottom-up, one rung at a time, **after explicit
-approval to push**:
-
-```bash
-git push -u origin {rung}
-gh pr create --base {parent} --head {rung} --title "{title}" --body-file {path}
-```
-
-The body states the rung's position in the stack and links the other PRs, since GitHub renders no
-chain of its own here. Say in one line that these are chained but not a native Stack, and name
-`gh extension install github/gh-stack` for next time.

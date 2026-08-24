@@ -104,9 +104,8 @@ Then **stop again**. The local stack exists; nothing has left the machine. Pushi
 are separate actions that need their own approval — see `rules/git-push.md`.
 
 **When approved, hand off to `github-pr-create`** — it detects the chain, drafts each PR body from
-the repo's template, and opens them as a native GitHub Stack via `gh stack link`. Recommend it,
-don't invoke it. Without `gh-stack`, SPLITTING.md holds the plain `git push -u` +
-`gh pr create --base {parent}` fallback.
+the repo's template, and opens them as a native GitHub Stack, falling back to plain chained PRs
+where `gh-stack` is missing. Recommend it, don't invoke it; every publishing mechanic lives there.
 
 ## Phase 6 — Verify
 
@@ -124,11 +123,9 @@ order** (bottom first).
 
 - **Review changes on a lower rung.** Commit the fix on that rung, then `git rebase --update-refs
   {base}` from the top branch — it moves every rung above in one pass instead of one at a time. The
-  force-push that follows uses `--force-with-lease` and has to be asked for. `gh stack sync` does
-  the same job.
-- **A parent merged.** GitHub retargets the child PR's base once the parent's branch is deleted, so
-  the stack survives — no base needs editing by hand. Locally, still rebase the children onto the
-  updated trunk.
+  force-push that follows uses `--force-with-lease` and has to be asked for. Once the stack is
+  published, `gh stack sync` does the same job — see `github-pr-create` for the rest of stack
+  upkeep.
 - **A file resists clean hunk splitting** — two layers' changes overlap in the same lines. Do not
   invent a middle state. Say so and offer the two honest options: put the whole file in the later
   PR (that PR grows), or land a prep commit in the earlier PR that makes the file splittable. Ask
