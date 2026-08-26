@@ -58,6 +58,7 @@ that read inside and see if the test goes green.
 |---|---|---|
 | `../dc-commerce/.worktrees/enh-70--semi-joins` | `enh-70/semi_joins` | 7 dirty |
 | `../repo-core` | `main` | 2 dirty, 3 ahead |
+| `../rust-scratch` | detached at `a3f19c2` | 4 dirty |
 
 **recent artifacts**
 - `.agents/scratch/plans/2026-08-24-stock-reservation.md` (2 days ago)
@@ -67,7 +68,9 @@ that read inside and see if the test goes green.
 ````
 
 The neighbour table only lists checkouts that are dirty or ahead. A clean one is
-not a session anybody left open, and listing it hides the two that are.
+not a session anybody left open, and listing it hides the three that are. A row
+with no branch says `detached at <short commit>` and carries no ahead/behind —
+writing `HEAD` there reads as a branch by that name.
 
 ## The summary — too vague vs. right
 

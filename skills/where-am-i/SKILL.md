@@ -79,8 +79,10 @@ much runway is left. It reads state and prints a report — it changes nothing.
   how old it is. A quota snapshot from hours ago describes an hour that is over.
 - **Chat only.** This skill writes no files, not even scratch. If the user wants
   the state persisted for a fresh agent to pick up, that is `write-handoff`.
-- **Bound the neighbour scan.** `full` looks one directory level around the repo
-  root and stops. Never walk the whole home directory hunting for checkouts.
+- **Bound the neighbour scan.** `full` searches a fixed few levels below the
+  parent of the repo root and prunes the trees that hold no checkouts, so it
+  reaches nested worktrees without getting slow. Never walk the whole home
+  directory hunting for checkouts.
 
 Nothing feeds this skill; it reads live state. When the answer to "what next" is
 "I'm out of context", hand off with `write-handoff` — this report is the input a

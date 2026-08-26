@@ -12,7 +12,7 @@ Run these as one batch. Together they take well under a second.
 |---|---|---|
 | Repo root | `git rev-parse --show-toplevel` | Not a git repo — say so, report the working directory instead, and skip every git field below |
 | Project name | basename of the repo root | — |
-| Branch, ahead/behind, dirty files | `git status --porcelain=v1 -b` | Detached HEAD prints `HEAD (no branch)` — report the short commit instead |
+| Branch, ahead/behind, dirty files | `git status --porcelain=v1 -b` | The first line names the state: `## HEAD (no branch)` is detached, so report the short commit; `## No commits yet on <branch>` is a fresh repo, so say so rather than showing a zero-file diff as if it were a clean tree |
 | In a worktree? | `git rev-parse --git-common-dir` — a path other than `.git` under the root means this checkout is a linked worktree | Report the checkout path plainly |
 | Hostname | `hostname` | Fall back to `uname -n` |
 | OS | `uname -s -r`, plus the `PRETTY_NAME` line of `/etc/os-release` when it exists | Print whatever `uname -s` gives |
@@ -33,17 +33,52 @@ Everything above, plus:
 | Last commit | `git log -1 --format='%h %s (%cr)'` | Empty repo — say "no commits yet" |
 | Kernel, uptime, user | `uname -r`, `uptime -p`, `id -un` | Drop the individual value |
 | Working directory | the shell's current directory, when it differs from the repo root | — |
-| Neighbouring checkouts | in the **parent** of the repo root: `find <parent> -maxdepth 2 -name .git`, dropping the current repo's own hit, then branch and dirty count for each | Parent unreadable — say "neighbour scan skipped" |
+| Neighbouring checkouts | in the **parent** of the repo root — see *The neighbour scan* below | Parent unreadable — say "neighbour scan skipped" |
 | Recent scratch artifacts | newest few files under `.agents/scratch/` (plans, deliverables, issue-analysis, reviews) and under `~/.agent-skills/<encoded-repo-root>/handoffs/`, with mtimes | Directory missing — drop the section |
 
 `<encoded-repo-root>` is the absolute repo root with every `/` replaced by `-`.
 
-**Bound the neighbour scan.** One level around the repo root, nothing deeper,
-and cap the list at eight entries sorted newest-first. The scan always finds the
-current repo first — drop that hit, or the report lists the checkout you are
-standing in as if it were somewhere else. Report only checkouts
-that are dirty or ahead of their upstream — a clean neighbour is not a session
-someone left open, and listing it buries the ones that are.
+### The neighbour scan
+
+```
+find <parent> -maxdepth 5 \
+  \( -name node_modules -o -name vendor -o -name target -o -name dist \) -prune \
+  -o -name .git -print -prune
+```
+
+Then take the branch and dirty count of each directory holding a hit.
+
+**Five levels, not one.** A linked worktree lives at `<repo>/.worktrees/<type>/<name>`,
+which is five levels below the parent — and a branch name containing a slash adds
+another. A worktree is the clearest sign of a session somebody left open, so a scan
+that cannot reach one misses the exact thing this section exists to find. Five is the
+floor that reaches them, not a round number.
+
+**The two `-prune` clauses are what keep it cheap.** Pruning `.git` stops the walk
+descending into every object directory, which is nearly all the cost; pruning the
+dependency directories skips trees that hold no checkouts. With both, the scan is
+milliseconds even across a workspace of twenty repositories.
+
+**A linked worktree's `.git` is a file, not a directory.** `-name .git` matches both,
+which is the only reason nested worktrees show up at all. Do not narrow it to `-type d`.
+
+Then, in order:
+
+- **Drop the current repo's own hit.** The scan always finds it, and listing it reports
+  the checkout you are standing in as if it were somewhere else.
+- **Keep only checkouts that are dirty or ahead of their upstream.** A clean neighbour is
+  not a session anyone left open, and listing it buries the ones that are.
+- **Cap at eight, newest first.** Say how many were dropped rather than truncating in
+  silence.
+- **Read the branch with `git symbolic-ref --short -q HEAD`.** The obvious alternative,
+  `git rev-parse --abbrev-ref HEAD`, prints the string `HEAD` for a detached checkout
+  **and** for a branch with no commits yet — two unrelated states collapsed into one
+  label that also reads like a branch named HEAD. The command above returns the branch
+  name when there is one and fails when the checkout is detached, which separates them.
+- **Three states are not a branch, and each says something different.** A detached
+  checkout is `detached at <short commit>`; a branch with no commits is
+  `<branch> (no commits)`; a branch that tracks nothing is `no upstream`. None of them
+  carries an ahead/behind count, and none is the same as being in sync.
 
 ## Agent state
 
