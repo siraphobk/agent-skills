@@ -25,8 +25,10 @@ picked up with no edit to `.claude-plugin/`.
 quietly.
 
 - **No host-specific paths.** Never write `~/.claude/`, `~/.cursor/`, `.claude/scratch/`,
-  or `.cursor/` in a skill. The one exempt file is
-  `skills/self-improve/AGENT-STRATEGIES.md`, whose job is to name per-agent locations.
+  or `.cursor/` in a skill. The exempt files are the `AGENT-STRATEGIES.md` in
+  `skills/self-improve/` and `skills/where-am-i/`, whose job is to name per-agent
+  locations. Exemption is by full path, listed in `HOST_PATH_EXEMPT` in `validate.sh` —
+  the filename alone buys nothing, so a new one is a deliberate edit plus a test.
 - **Shared scratch lives at `.agents/scratch/`.** Project-relative, so both agents write
   there. Subdirectories in use: `plans`, `deliverables`, `issue-analysis`, `draft-prs`,
   `draft-issues`, `test-reports`, `solution-research`, `reviews`.
