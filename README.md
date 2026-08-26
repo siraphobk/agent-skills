@@ -18,7 +18,7 @@ Run `./install.sh --list` for the descriptions. The short version:
 | GitHub | `github-issue-pickup`, `github-issue-write`, `github-pr-review`, `split-stack-pr` |
 | Think before building | `research-solutions`, `grill-me` |
 | When something is broken | `diagnose`, `run-and-report-tests` |
-| Across sessions | `write-handoff`, `self-improve`, `write-skill` |
+| Across sessions | `where-am-i`, `write-handoff`, `self-improve`, `write-skill` |
 
 The first four hand off to each other through `.agents/scratch/`, so they are worth
 installing together.
@@ -37,6 +37,7 @@ Some take an argument to pick a mode:
 | `grill-me` | `plain` \| `docs` | `plain` interviews only; `docs` also updates `CONTEXT.md` and ADRs. Asks you when you don't say. |
 | `analyze-issue` | `quick` \| `default` \| `deep`, and `bug` \| `feature` | how wide the survey goes, and which report shape it writes |
 | `research-solutions` | `quick` \| `default` \| `deep` | how far the research fans out |
+| `where-am-i` | `brief` \| `full` | `brief` is the crucial facts; `full` adds other checkouts, artifacts, and full machine detail |
 
 A typical run through the chain:
 
