@@ -23,10 +23,12 @@ much runway is left. It reads state and prints a report — it changes nothing.
    fails is a field marked unavailable, never a guess and never a retry loop.
 
 3. **Read the agent's own state.** Context used, remaining token budget, model,
-   and quota. Only report a number that something actually told you — the
-   harness's own figures, or the usage snapshot named in PROBES.md. If the
-   snapshot is missing or stale, say the quota is unknown and point at the
-   command that shows it.
+   and quota. Context comes off the session transcript by the formula in
+   [AGENT-STRATEGIES.md](AGENT-STRATEGIES.md), which is where the per-agent file
+   locations live; quota comes from the usage snapshot in PROBES.md. Report
+   nothing neither of those nor the harness actually gave you, and when the
+   snapshot is missing or stale say the quota is unknown and name the command
+   that shows it.
 
 4. **Write the summary from the conversation, not the code.** Three sentences,
    hard cap: what the task is, where it stands right now, what is next or

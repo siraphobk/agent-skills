@@ -48,8 +48,14 @@ MAX_LINES=150
 # The tilde is bracketed so it reads as a regex literal, not a home-directory expansion.
 HOST_PATH_RE='[~]/\.claude/|[~]/\.cursor/|\.claude/scratch/|\.cursor/'
 
-# The one file allowed to name agents, because listing per-agent locations is its job.
-HOST_PATH_EXEMPT="self-improve/AGENT-STRATEGIES.md"
+# The files allowed to name agents, because listing per-agent locations is their whole job.
+# Exemption is by full relative path, not by filename: naming a file AGENT-STRATEGIES.md must
+# not be enough to opt out of the check, or the rule is bypassed by whoever wants to bypass it.
+# Adding an entry here is a deliberate edit, and tests/validate.bats proves both halves.
+HOST_PATH_EXEMPT="
+self-improve/AGENT-STRATEGIES.md
+where-am-i/AGENT-STRATEGIES.md
+"
 
 fail=0
 err() {
@@ -72,8 +78,11 @@ done
 
 allowed_idents=" $(echo "$ALLOWED_IDENTS" | tr '\n' ' ' | tr -s ' ') "
 
+host_path_exempt=" $(echo "$HOST_PATH_EXEMPT" | tr '\n' ' ' | tr -s ' ') "
+
 is_known() { case "$known_skills" in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 is_allowed() { case "$allowed_idents" in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+is_host_path_exempt() { case "$host_path_exempt" in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 
 # --- per-skill checks -------------------------------------------------------
 
@@ -157,7 +166,7 @@ while IFS= read -r file; do
 	EOF
 
 	# No skill may name a specific agent's directories.
-	if [ "$rel" != "$HOST_PATH_EXEMPT" ]; then
+	if ! is_host_path_exempt "$rel"; then
 		while IFS= read -r hit; do
 			[ -n "$hit" ] || continue
 			err "$file — host-specific path: $hit"

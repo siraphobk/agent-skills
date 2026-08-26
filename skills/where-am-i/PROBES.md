@@ -49,15 +49,19 @@ someone left open, and listing it buries the ones that are.
 
 | Field | Where it comes from |
 |---|---|
-| Context used | The running agent's own context accounting. Report it as a percentage of the window plus the raw figure, only if the harness stated both |
+| Context used | The session transcript — see [AGENT-STRATEGIES.md](AGENT-STRATEGIES.md) for the file location and the formula, which differ per agent |
 | Remaining token budget | The remaining-token figure the harness reports in context, when it reports one |
 | Model | The model identifier the agent is running under |
 | Session identity | The session id the harness exposes, when it exposes one |
 
-None of these are shell-readable. If the harness has not stated a figure this
-session, the field is unavailable — do not derive it from token arithmetic over
-the transcript, and do not repeat a figure from an earlier turn as if it were
-current.
+Context used is the one field here that is worth reading off disk, and the one
+most easily got wrong — summing turns instead of taking the newest, or picking a
+subagent's entry, both produce a confident number that is simply false. Follow
+the formula in that file rather than improvising one.
+
+The rest are not shell-readable. If the harness has not stated a figure this
+session, the field is unavailable — and never repeat a figure from an earlier
+turn as if it were current.
 
 ## Quota — the snapshot contract
 

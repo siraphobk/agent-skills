@@ -170,13 +170,32 @@ see [notes](does-not-exist.md)
 	[ "$status" -eq 0 ]
 }
 
-# Naming per-agent locations is that one file's whole job, so it is exempt by path.
+# Naming per-agent locations is that file's whole job, so it is exempt by path.
 @test "AGENT-STRATEGIES.md may name agent paths" {
 	write_skill "$SKILLS" self-improve "See [strategies](AGENT-STRATEGIES.md)."
 	printf '# per agent\n\nWrite to ~/.claude/rules/topic.md.\n' \
 		>"$SKILLS/self-improve/AGENT-STRATEGIES.md"
 	run "$VALIDATE" "$SKILLS"
 	[ "$status" -eq 0 ]
+}
+
+@test "every exempt path is exempt, not just the first" {
+	write_skill "$SKILLS" where-am-i "See [strategies](AGENT-STRATEGIES.md)."
+	printf '# per agent\n\nRead the transcript under ~/.claude/projects/.\n' \
+		>"$SKILLS/where-am-i/AGENT-STRATEGIES.md"
+	run "$VALIDATE" "$SKILLS"
+	[ "$status" -eq 0 ]
+}
+
+# The exemption is by path, so the filename alone must not buy a way out of the check —
+# otherwise any skill opts out by naming a file AGENT-STRATEGIES.md.
+@test "AGENT-STRATEGIES.md in a skill that is not exempt still fails" {
+	write_skill "$SKILLS" beta "See [strategies](AGENT-STRATEGIES.md)."
+	printf '# per agent\n\nWrite to ~/.claude/rules/topic.md.\n' \
+		>"$SKILLS/beta/AGENT-STRATEGIES.md"
+	run "$VALIDATE" "$SKILLS"
+	[ "$status" -ne 0 ]
+	[[ "$output" == *"host-specific path"* ]]
 }
 
 # --- dangling skill references ---------------------------------------------
