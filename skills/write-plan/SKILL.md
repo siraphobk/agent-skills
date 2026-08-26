@@ -108,6 +108,11 @@ file opens with a backlink above its title:
 - **Every file a phase touches is listed in that phase.** No "and related callers" — find them while planning and name them.
 - **Gates run, they don't narrate.** A gate is a command plus its expected result. A prose-only gate lets an agent declare a pass without running anything. Mark the genuine exceptions `(manual)`.
 - **Every acceptance criterion is proved in Verification.** An AC no line covers is either untestable — rewrite it — or the plan is missing work.
+- **Scope every AC and verification line to what the phase touches.** A criterion like "no `X`
+  remains anywhere under `cmd/`" contradicts the plan's own Non-goals the moment one service is
+  excluded, and the grep flags files nobody was asked to change. Name the directories or files the
+  phase declares, not the whole tree. If an AC cannot be stated without naming them, it is
+  measuring more than the phase does.
 - **One phase, one commit-sized change.** More than ~5 files, or two unrelated concerns in one phase, means split it.
 - **Length follows the work.** The added detail belongs in the phase specs, not in longer design prose. Never pad a phase to look thorough.
 - **Don't reformat the progress markers.** The `[ ]` boxes on phase headings (and on epic Sub-plans entries) are parsed and flipped to `[x]` by execute-plan via exact match. Keep the format exactly as the templates show it — moving or restyling them silently breaks resume-after-reset.
