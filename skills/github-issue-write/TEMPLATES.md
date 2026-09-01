@@ -1,13 +1,13 @@
-# Issue Templates — the output shapes
+# Issue Templates: the output shapes
 
-Three literal shapes [SKILL.md](SKILL.md) fills in. Every branch about *which* shape to use lives
-in SKILL.md; this file only holds the shapes themselves.
+This file holds three literal shapes that [SKILL.md](SKILL.md) fills in. Every branch about
+*which* shape to use lives in SKILL.md. This file holds only the shapes themselves.
 
 ## Default issue body (no repo template)
 
-Used when Step 1 found nothing in `.github/ISSUE_TEMPLATE/`. Drop the sections that don't apply
-to the kind of issue — a feature request with an empty "Steps to reproduce" reads worse than one
-without the heading.
+Use this shape when Step 1 found nothing in `.github/ISSUE_TEMPLATE/`. Remove the sections that
+do not apply to the kind of issue. A feature request with an empty "Steps to reproduce" reads
+worse than one without the heading.
 
 ```markdown
 ## Description
@@ -31,8 +31,8 @@ without the heading.
 
 ## Draft file wrapper
 
-Written to `.agents/scratch/draft-issues/{filename}`. The metadata sits in the header so the user
-can check labels and assignee without reading the body.
+Write this shape to `.agents/scratch/draft-issues/{filename}`. The metadata sits in the header.
+The user can check the labels and the assignee there, and does not need to read the body.
 
 ```markdown
 # Issue Draft
@@ -50,8 +50,8 @@ can check labels and assignee without reading the body.
 
 ## Confirm block
 
-Printed in chat once the draft file is written. Stop here — Step 5 validates the labels only
-after the user says go.
+Print this block in chat after you write the draft file. Stop here. Step 5 validates the labels
+only after the user agrees.
 
 ```
 Draft written to .agents/scratch/draft-issues/{filename}

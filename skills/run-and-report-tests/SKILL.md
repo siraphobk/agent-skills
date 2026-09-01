@@ -8,48 +8,48 @@ description: Detect the test runner for a target directory, confirm the command 
 
 ## Workflow
 
-Run in order. Stop at each confirmation gate.
+Run the steps in order. Stop at each confirmation gate.
 
 ### 1. Detect test command
 
-Identify the test target (directory or package) from user input. Inspect it:
+Identify the test target from the user input. The target is a directory or a package. Inspect the target:
 
-- `*_test.go` present → Go. Default cmd: `go test -v <target>`.
-- `*_test.py` / `test_*.py` / `conftest.py` / `pytest.ini` → likely pytest. Ask user before assuming.
-- `*.test.ts` / `*.test.js` / `*.spec.ts` / `vitest.config.*` / `jest.config.*` → ask which runner.
+- `*_test.go` present → Go. The default command is `go test -v <target>`.
+- `*_test.py` / `test_*.py` / `conftest.py` / `pytest.ini` → probably pytest. Ask the user first. Do not assume.
+- `*.test.ts` / `*.test.js` / `*.spec.ts` / `vitest.config.*` / `jest.config.*` → ask the user which runner to use.
 - `Cargo.toml` with `#[test]` → `cargo test`.
-- Pre-built binary, unknown language, or ambiguous → **ask user for the exact command**.
+- Pre-built binary, unknown language, or an unclear target → **ask the user for the exact command**.
 
 ### 2. Confirm command
 
-Present the proposed command verbatim. Wait for user approval. Do not run yet.
+Present the proposed command verbatim. Wait for the user to approve it. Do not run the command yet.
 
 ### 3. Ask report scope
 
-Ask: full report (both passing and failing) OR failing only?
+Ask the user this question: full report (both passing and failing) OR failing only?
 
 ### 4. Run + capture
 
-Run the agreed command via Bash. Capture stdout AND stderr (`2>&1`). Set a generous timeout (default `600000` ms). Do not truncate the captured output before parsing.
+Run the agreed command with Bash. Capture stdout AND stderr (`2>&1`). Set a long timeout. The default is `600000` ms. Do not truncate the captured output before you parse it.
 
 ### 5. Parse output
 
-Extract:
+Extract these facts:
 
-- Total / passed / failed / skipped counts.
-- Each failing test: name, file:line, error message, expected vs actual if present.
-- Common pattern across failures (same error string, same package, same step name, etc.).
-- Obvious root cause if one jumps out (e.g., every failure says `got "DESIGNER"` → fixture leak or default-role bug).
+- The total, passed, failed, and skipped counts.
+- Each failing test: name, file:line, error message, and expected vs actual if present.
+- The common pattern across the failures (same error string, same package, same step name, and so on).
+- The root cause, if the output makes one obvious (for example, every failure says `got "DESIGNER"` → fixture leak or default-role bug).
 
-If output is messy or unaligned, normalize into a markdown table.
+Normalize the output into a markdown table if it is messy or unaligned.
 
 ### 6. Write report
 
-Path: `.agents/scratch/test-reports/<YYYY-MM-DD-HH-MM-SS>-<test-dirname>.md`, relative to current working directory.
+Write the report to `.agents/scratch/test-reports/<YYYY-MM-DD-HH-MM-SS>-<test-dirname>.md`. This path is relative to the current working directory.
 
-- Timestamp: `date +%Y-%m-%d-%H-%M-%S`.
-- `<test-dirname>`: basename of target dir; if a package path, replace `/` with `-`.
-- Create `.agents/scratch/test-reports/` if missing (use `mkdir -p`).
+- Get the timestamp from `date +%Y-%m-%d-%H-%M-%S`.
+- `<test-dirname>` is the basename of the target directory. Replace `/` with `-` if the target is a package path.
+- Create `.agents/scratch/test-reports/` if the directory does not exist. Use `mkdir -p`.
 
 ### 7. Confirm
 
@@ -108,8 +108,8 @@ Print the absolute report path to the user.
 
 ## Constraints
 
-- Never invent results. If a count is unclear, mark it `?` and note why.
-- Preserve runner error text verbatim inside code blocks.
-- Strip ANSI color codes before writing to the report.
-- Do not delete or overwrite existing reports.
-- If the test command fails to start (compile error, missing binary), still write a report — the failure is the result.
+- Never invent results. If a count is unclear, mark it `?` and give the reason.
+- Keep the runner error text verbatim inside code blocks.
+- Remove ANSI color codes before you write the report.
+- Do not delete or overwrite an existing report.
+- Write a report even if the test command does not start (compile error, missing binary). The failure is the result.

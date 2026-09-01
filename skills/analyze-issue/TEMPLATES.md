@@ -1,16 +1,17 @@
-# Report Templates — shared ground
+# Report Templates: shared ground
 
-The report is a directory with exactly **four** files. Findings live in doc 3, recommendations in
-doc 4, linked by **finding ID** (`F-01`, `F-02`, …) so each finding can be explored later on its own.
+The report is a directory with exactly **four** files. Findings live in doc 3. Recommendations live
+in doc 4. A **finding ID** (`F-01`, `F-02`, …) links the two, so each finding can be explored later
+on its own.
 
-Docs **01–02 are shared** (skeleton below). Docs **03–04 differ by kind** — pick the kind in
-Step 0 of [SKILL.md](SKILL.md), then follow that kind's file:
+Docs **01–02 are shared**, and the skeleton is below. Docs **03–04 differ by kind**. Pick the kind
+in Step 0 of [SKILL.md](SKILL.md), then follow that kind's file:
 
 - bug / investigation → [BUG_TEMPLATES.md](BUG_TEMPLATES.md)
 - feature → [FEATURE_TEMPLATES.md](FEATURE_TEMPLATES.md)
 
-Each kind file also gives the **Findings index columns** and the **Documents block** to drop into
-`01-summary.md` for that kind.
+Each kind file also gives two things for that kind: the **Findings index columns** and the
+**Documents block** to put into `01-summary.md`.
 
 **Bug / investigation report:**
 
@@ -34,45 +35,50 @@ Each kind file also gives the **Findings index columns** and the **Documents blo
 
 ## Finding categories
 
-**Bug kind** — search by **failure class**, then categorize each finding as:
-- **Gap** — missing handling, unimplemented requirement, absent validation, untested edge case.
-- **Bug** — incorrect logic, broken invariant, race, off-by-one, wrong error handling.
-- **Risk** — perf cliff, security hole, data-integrity hazard, hidden coupling, scalability limit.
+**Bug kind.** Search by **failure class**, then categorize each finding:
 
-**Feature kind** — survey by **readiness to build**, then categorize each finding as:
-- **Decision** — a design choice with options + a recommendation.
-- **Integration point** — a specific place code must change or hook in.
-- **Risk / Unknown** — a hazard, dependency, or thing needing a spike.
-- **Open question** — a requirement ambiguity to resolve before coding.
+- **Gap:** missing handling, an unimplemented requirement, absent validation, an untested edge case.
+- **Bug:** incorrect logic, a broken invariant, a race, an off-by-one, wrong error handling.
+- **Risk:** a perf cliff, a security hole, a data-integrity hazard, hidden coupling, a scalability
+  limit.
+
+**Feature kind.** Survey by **readiness to build**, then categorize each finding:
+
+- **Decision:** a design choice with options and a recommendation.
+- **Integration point:** a specific place where code must change or hook in.
+- **Risk / Unknown:** a hazard, a dependency, or something that needs a spike.
+- **Open question:** a requirement ambiguity to resolve before coding.
 
 ## Severity scale (bug / investigation)
 
-- **Critical** — data loss, security breach, or correctness failure on a common path. Fix before shipping.
-- **High** — wrong behavior or a serious risk on a real path; ships broken without it.
-- **Medium** — edge-case bug, notable risk, or gap that bites under specific conditions.
-- **Low** — minor gap, cleanup, or hardening that's worth noting but not blocking.
+- **Critical:** data loss, a security breach, or a correctness failure on a common path. Fix it
+  before you ship.
+- **High:** wrong behavior or a serious risk on a real path. The code ships broken without the fix.
+- **Medium:** an edge-case bug, a notable risk, or a gap that bites under specific conditions.
+- **Low:** a minor gap, cleanup, or hardening. It is worth a note, but it does not block.
 
-Order findings by severity; ties broken by category **Bug → Risk → Gap**.
+Order the findings by severity. Break a tie by category, in the order **Bug → Risk → Gap**.
 
 ## Reversibility scale (feature)
 
-Feature findings aren't graded by blast radius — they're graded by **cost-to-reverse**, which maps
-onto the planning tiers so the report feeds `write-plan` directly:
+Feature findings are not graded by how much code they touch. They are graded by
+**cost-to-reverse**. That scale maps onto the planning tiers, so the report feeds `write-plan`
+directly.
 
-- **Architecture** — data model, public API, service boundary, dependency lock-in. Hard to undo;
-  resolve and grill before any code.
-- **Module-shape** — new struct/endpoint/internal helper, folder layout, a private signature. One
-  recommendation + a one-line alt is enough.
-- **Local** — naming, a single-file edit, an internal detail. Decide in passing.
+- **Architecture:** the data model, a public API, a service boundary, dependency lock-in. It is hard
+  to undo. Resolve it and grill it before any code.
+- **Module-shape:** a new struct, endpoint, or internal helper, the folder layout, a private
+  signature. One recommendation plus a one-line alternative is enough.
+- **Local:** naming, a single-file edit, an internal detail. Decide it in passing.
 
-Order findings by reversibility; ties broken by category **Decision → Integration point →
-Risk-Unknown → Open question**.
+Order the findings by reversibility. Break a tie by category, in the order **Decision → Integration
+point → Risk-Unknown → Open question**.
 
 ## Confidence (both kinds)
 
-**Confidence** — High (verified in code) / Medium (likely, some inference) / Low (suspected, needs
-checking). For a feature it measures how sure you are of the claim about the *existing* code a
-finding rests on.
+**Confidence** has three values. High means verified in code. Medium means likely, with some
+inference. Low means suspected, and it needs checking. For a feature, confidence measures how sure
+you are of the claim about the *existing* code the finding rests on.
 
 ## 01-summary.md  (shared skeleton)
 

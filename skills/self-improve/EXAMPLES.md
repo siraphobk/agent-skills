@@ -1,35 +1,36 @@
-# self-improve — worked example
+# self-improve worked example
 
-Calibration for the proposal density: evidence a reader recognizes, changes
-small enough to paste, and a home named down to the file.
+This example sets the density of a proposal. The evidence is a moment the reader
+recognizes. The changes are small enough to paste. Each home names the exact file.
 
-This run detected **Claude Code**. Destinations below name the class and the file;
-[AGENT-STRATEGIES.md](AGENT-STRATEGIES.md) is what resolved each one to a directory.
-In Cursor, items 1 and 3 would be handed back as manual pastes instead.
+This run detected **Claude Code**. The destinations below name the class and the file.
+[AGENT-STRATEGIES.md](AGENT-STRATEGIES.md) turned each class into a directory. In Cursor,
+items 1 and 3 would become manual pastes for the user.
 
 ## The session
 
-Two hours on a Go billing bug. The user corrected the assistant three times about
-showing code before explaining it, once about running a migration without asking,
-and accepted a "check the live cluster first" suggestion. The assistant also
-grepped for a symbol, found nothing, and declared it absent — wrongly.
+The session ran two hours on a Go billing bug. The user corrected the assistant
+three times about code shown before an explanation. The user corrected the
+assistant once about a migration run with no question first. The user also
+accepted a "check the live cluster first" suggestion. The assistant grepped for
+a symbol, found nothing, and said the symbol was absent. That claim was wrong.
 
 ## The proposal, as presented
 
-> Five items, ranked. Nothing is written until you say which.
+> Five items, ranked. I write nothing until you say which ones to apply.
 
 | # | Evidence (what happened) | Change | Destination | Level |
 |---|---|---|---|---|
-| 1 | Three times you said "explain first, then the code" — turns 12, 26, 41 | Sharpen the existing explanation-first bullet to name code blocks explicitly | user-level instructions, `CLAUDE.md` (edit) | user |
-| 2 | Grep for `chargeWallet` returned nothing, I said "no caller exists" — there were two, in a generated file | New cautionary fragment: an empty grep is not evidence | a memory fragment + index line | user |
-| 3 | "Never run a migration without asking me" — turn 33, stated as always-on | New hard rule + index bullet | policy rule, `db-migrations.md` | user |
-| 4 | You confirmed reading the live cluster over the Helm chart — turn 19 | Lock the win into the existing k8s fragment | memory fragment, `cautionary/k8s-live-not-chart.md` (edit) | user |
-| 5 | `go test ./billing/...` needed `TESTDB_URL` set; I hunted for it twice | Record the env var this repo's tests need | project memory | project |
+| 1 | Three times you said "explain first, then the code", at turns 12, 26, 41 | Sharpen the existing explanation-first bullet to name code blocks explicitly | user-level instructions, `CLAUDE.md` (edit) | user |
+| 2 | Grep for `chargeWallet` returned nothing. I said "no caller exists". Two callers existed, in a generated file. | New cautionary fragment: an empty grep is not evidence | a memory fragment + index line | user |
+| 3 | "Never run a migration without asking me", at turn 33, stated as always-on | New hard rule + index bullet | policy rule, `db-migrations.md` | user |
+| 4 | At turn 19 you confirmed a read of the live cluster over the Helm chart | Lock the win into the existing k8s fragment | memory fragment, `cautionary/k8s-live-not-chart.md` (edit) | user |
+| 5 | `go test ./billing/...` needed `TESTDB_URL` set. I searched for it twice. | Record the env var this repo's tests need | project memory | project |
 
 **Noted, not proposed:** you preferred `wallet` over `balance` in one function
-name — one-off, task-specific, not a standing preference.
+name. That is a one-off, task-specific choice, not a standing preference.
 
-### Item 1 — exact edit
+### The exact edit for item 1
 
 Your user-level instructions file, under Response Style:
 
@@ -39,10 +40,10 @@ Your user-level instructions file, under Response Style:
   attach the code. Don't lead with a code block and a one-line caption.
 ```
 
-Before: the bullet stopped at "…then attach the code." The added sentence is the
-part that kept getting missed.
+Before the edit, the bullet stopped at "…then attach the code." The new sentence
+names the part that the assistant missed again and again.
 
-### Item 3 — exact new file
+### The exact new file for item 3
 
 A new policy rule, `db-migrations.md`:
 
@@ -62,28 +63,30 @@ A new policy rule, `db-migrations.md`:
 Suspended when the user names the command and the target in the same turn.
 ```
 
-Plus one bullet in the Rules index of your user-level instructions file:
+Add one bullet to the Rules index of your user-level instructions file:
 
 ```
 - **`db-migrations.md`** — never run a migration unprompted; writing one is fine.
 ```
 
-## What made this proposal work
+## Why this proposal worked
 
-- **Every row names a turn.** "Turns 12, 26, 41" is checkable; "you seemed to
-  prefer" is not.
-- **Item 1 edits a line instead of adding one.** The rule already existed — the
-  gap was that it stopped one sentence too early.
-- **Item 3 got a rule, item 2 got a memory fragment.** "Never do X" is policy;
-  "greps lie in this specific way" is knowledge that may evolve.
-- **Item 5 went to project-private memory, not a user-level fragment.** It's true of one repo.
-- **The dropped item is still reported.** One line, so the user can overrule.
+- **Every row names a turn.** A reader can check "Turns 12, 26, 41". A reader
+  cannot check "you seemed to prefer".
+- **Item 1 edits a line. It does not add one.** The rule already existed. The
+  gap was that the rule stopped one sentence too early.
+- **Item 3 got a rule, and item 2 got a memory fragment.** "Never do X" is
+  policy. "greps lie in this specific way" is knowledge that may evolve.
+- **Item 5 went to project-private memory, not a user-level fragment.** It is
+  true of one repo.
+- **The report still names the dropped item.** One line is enough, so the user
+  can overrule the drop.
 
 ## An "already covered" row
 
-When the config already says it, don't propose — show it:
+When the config already says it, do not propose a change. Show the existing line:
 
-> **Not proposed** — you asked me twice not to commit unprompted. That's already
-> `rules/git-commit.md`: *"Do not run `git commit` (any form) unless the user
-> explicitly asks for a commit in the same turn."* The gap was me following it,
-> not the rule's wording. No config change would have prevented it.
+> **Not proposed.** You asked me twice not to commit unprompted.
+> `rules/git-commit.md` already says it: *"Do not run `git commit` (any form)
+> unless the user explicitly asks for a commit in the same turn."* The gap was
+> that I did not follow the rule. No config change would have prevented it.

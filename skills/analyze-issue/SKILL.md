@@ -18,132 +18,141 @@ argument-hint: "[quick|default|deep] [bug|feature]"
 
 # Analyze Issue
 
-Explore → find what matters → recommend an approach. The deliverable is a report (or a chat answer
-in `quick` mode), **not** code changes. **Do not implement anything** — this skill stops at
-analysis.
+Explore the code, find what matters, then recommend an approach. The result is a report. In `quick`
+mode the result is a chat answer instead. The result is **not** code changes. **Do not implement
+anything.** This skill stops at analysis.
 
-The skill handles **two issue kinds**, set in Step 0. The orchestration is identical for both —
-only the lens set, the finding categories, and the report's docs 3–4 change:
+The skill handles **two issue kinds**. Step 0 sets the kind. The process is the same for both kinds.
+Only the lens set, the finding categories, and the report's docs 3–4 change.
 
-- **bug / investigation** — find gaps/bugs/risks in existing code, suggest a fix approach.
-- **feature** — survey where a new feature plugs in: decisions, integration points, unknowns.
+- **bug / investigation:** find gaps, bugs, and risks in existing code. Suggest a fix approach.
+- **feature:** survey where a new feature connects to the code. Report the decisions, the
+  integration points, and the unknowns.
 
-## When to use / not use
+## When to use this skill and when not to
 
-- **Use this** for a pre-change survey of the existing code tied to an issue (either kind).
-- **Use `diagnose`** for one known, reproducible bug or perf regression — it reproduces and fixes.
-- **Use `code-review` / `github-pr-review`** to review a diff, branch, or PR — changed code, not
-  the existing surface an issue points at.
+- **Use this skill** for a pre-change survey of the existing code tied to an issue. Both kinds
+  apply.
+- **Use `diagnose`** for one known, reproducible bug or performance regression. That skill
+  reproduces the bug and fixes it.
+- **Use `code-review` or `github-pr-review`** to review a diff, a branch, or a PR. Those skills read
+  changed code. This skill reads the existing code that an issue identifies.
 
-## Mode & kind (arguments)
+## Mode and kind (arguments)
 
-The invocation may carry up to two words, order-independent: a **mode** (`quick` | `default` |
-`deep`) setting investigation depth, and a **kind** (`bug` | `feature`) selecting the lens set and
-report variant. No mode word → `default`. No kind word → detect it in Step 0. An unrecognized
-word → ask, don't guess.
+The invocation can carry up to two words, in any order. A **mode** word (`quick`, `default`, or
+`deep`) sets the depth of the investigation. A **kind** word (`bug` or `feature`) selects the lens
+set and the report variant. With no mode word, the mode is `default`. With no kind word, detect the kind in
+Step 0. Ask about an unrecognized word. Do not guess.
 
 **[GATES.md](GATES.md) is the single source** for what each mode does, what each gate presents,
-and who can change what. Read it before Step 0 — the steps below only mark *where* a gate fires.
+and who can change what. Read it before Step 0. The steps below only mark *where* a gate fires.
 
-## Step 0 — Get the issue
+## Step 0: Get the issue
 
 Accept any source:
-- **GitHub issue** (`#N` or a URL): if the user also wants to claim/start the issue (assign,
-  branch, comment), defer to the `/github-issue-pickup` skill and reuse the issue it surfaces.
-  Otherwise just read it: resolve `owner`/`repo` from `git remote get-url origin`, then
-  `gh issue view <N> --json number,title,body,labels,comments`.
-- **Pasted text** or a **local file path**: use it as-is.
 
-Distill the issue into: the **goal**, the **expected behavior / acceptance criteria**, and the
-**keywords / area names** you'll search by. If the issue is too vague to know *where* to search,
-ask one clarifying question **before mapping**, then proceed.
+- **GitHub issue** (`#N` or a URL). The user may also want to claim or start the issue (assign,
+  branch, comment). In that case, use the `/github-issue-pickup` skill and reuse the issue it
+  returns. Otherwise only read the issue. Get `owner` and `repo` from `git remote get-url origin`.
+  Then run `gh issue view <N> --json number,title,body,labels,comments`.
+- **Pasted text** or a **local file path**. Use it without change.
 
-**Determine the kind** (unless given as an arg) from labels, issue template, or verbs — the
-signal table is in [GATES.md](GATES.md). If the signals conflict or are absent, state your best
-guess and let the user confirm or flip it **at Gate 1** (you're stopping there anyway).
+Distill the issue into three things: the **goal**, the **expected behavior or acceptance criteria**,
+and the **keywords or area names** you will search by. The issue may be too vague to show *where* to
+search. Then ask one clarifying question **before you map the surface**, and continue.
 
-## Step 1 — Map the affected surface
+**Determine the kind** unless an argument gave it. Read it from the labels, the issue template, or
+the verbs. The signal table is in [GATES.md](GATES.md). The signals may conflict or be absent. Then
+state your best guess. The user confirms it or changes it **at Gate 1**, and you stop there anyway.
 
-Use Glob / Grep / Read to locate the code tied to the issue: entrypoints, modules, data models,
-callers, tests. Produce a short **surface map** — key files and what each does / why it's relevant.
+## Step 1: Map the affected surface
 
-**Gate 1 fires here** — see [GATES.md](GATES.md).
+Use Glob, Grep, and Read to locate the code tied to the issue. Look for entrypoints, modules, data
+models, callers, and tests. Produce a short **surface map**. The map lists the key files. For each
+file it says what the file does and why the file is relevant.
 
-## Step 2 — Size the scope, decide fan-out
+**Gate 1 fires here.** See [GATES.md](GATES.md).
 
-- **Small** (~5 files or fewer, a single module): analyze it yourself in one pass. No subagents.
-- **Large** (many files, multiple modules, or a cross-cutting concern): **fan out by lens** —
-  one `general-purpose` subagent per lens from the kind's lens set in [CHECKLIST.md](CHECKLIST.md)
-  (applicable lenses in `default`, every lens in `deep`), each scanning the **whole** surface
-  through that single lens. This finds more than splitting by module.
-- **Matrix** (`deep` with more than one distinct area): subagents per (area × lens). `deep` floors
-  at full lens fan-out and only escalates to matrix when multiple areas justify it — never matrix on
-  a single-area surface.
+## Step 2: Size the scope and decide the fan-out
 
-Follow the **subagent contract and per-lens model guidance in [CHECKLIST.md](CHECKLIST.md)**: pass
-each agent the issue context, the surface map, and its lens (and area); findings come back concise
-in the [TEMPLATES.md](TEMPLATES.md) format. Launch independent subagents in the same batch. **You**
-then dedupe, **normalize severity (bug) or reversibility (feature) across agents**, and assemble —
-see Steps 4–5.
+- **Small** (about 5 files or fewer, a single module): analyze it yourself in one pass. Use no
+  subagents.
+- **Large** (many files, several modules, or a cross-cutting concern): use **lens fan-out**. Start
+  one `general-purpose` subagent per lens from the kind's lens set in [CHECKLIST.md](CHECKLIST.md).
+  Use the applicable lenses in `default` and every lens in `deep`. Each subagent scans the **whole**
+  surface through that single lens. This finds more than a split by module.
+- **Matrix** (`deep` with more than one distinct area): use one subagent per area and lens pair.
+  `deep` always runs at least a full lens fan-out. It escalates to a matrix only when several areas
+  justify it. Never use a matrix on a single-area surface.
 
-**Gate 2 fires here** (large scope, and always `deep`) — present the fan-out plan in the format
-[GATES.md](GATES.md) shows and wait for go before spawning anything.
+Follow the **subagent contract and the per-lens model guidance in [CHECKLIST.md](CHECKLIST.md)**.
+Pass each agent the issue context, the surface map, and its lens. Pass the area as well in a matrix.
+Each agent returns concise findings, in the [TEMPLATES.md](TEMPLATES.md) format. Launch independent
+subagents in the same batch. **You** then dedupe the findings. **You normalize severity (bug) or
+reversibility (feature) across agents.** Then you assemble the report. See Steps 4–5.
 
-## Step 3 — Hunt findings
+**Gate 2 fires here** (large scope, and always `deep`). Present the fan-out plan in the format
+[GATES.md](GATES.md) shows. Wait for a go before you start any subagent.
 
-Run the lenses for the issue's kind from [CHECKLIST.md](CHECKLIST.md) over the surface, at the
-breadth your mode dictates. The lens is how you *find* a finding; you then *categorize* it.
+## Step 3: Hunt findings
 
-Categorize each finding once you find it — **bug** into Gap / Bug / Risk, **feature** into
-Decision / Integration point / Risk-Unknown / Open question. Definitions are in
-[TEMPLATES.md](TEMPLATES.md) alongside the ordering scales.
+Run the lenses for the issue's kind from [CHECKLIST.md](CHECKLIST.md) over the surface. Use the
+breadth your mode dictates. The lens is how you *find* a finding. You then *categorize* it.
 
-Ground every finding in a `file:line` and what the code actually does (a pure requirement / open
-question may cite the issue text instead). No claim without a reference. Tie findings back to the
-issue's goal where relevant.
+Categorize each finding once you find it. Put a **bug** finding into Gap, Bug, or Risk. Put a
+**feature** finding into Decision, Integration point, Risk-Unknown, or Open question. The definitions
+are in [TEMPLATES.md](TEMPLATES.md), next to the ordering scales.
 
-## Step 4 — Recommend an approach
+Ground every finding in a `file:line` and in what the code actually does. A pure requirement or open
+question may cite the issue text instead. Make no claim without a reference. Tie findings back to
+the issue's goal where relevant.
 
-For each finding, give a concrete, actionable recommendation: for a bug, what to change and why;
-for a feature, which option to take (or the hook-in / resolution path) and why. Approach or
-pseudocode is fine; **do not write the full implementation**. When fanning out, subagents propose
-the recommendation for their own findings; you reconcile duplicates and conflicts.
+## Step 4: Recommend an approach
 
-## Step 5 — Deliver
+Give a concrete, actionable recommendation for each finding. For a bug, say what to change and why.
+For a feature, say which option to take and why. For a feature you may give the hook-in or the
+resolution path instead. An approach or pseudocode is fine. **Do not write the full
+implementation.** With a fan-out, each subagent proposes the recommendation for its own findings.
+You reconcile duplicates and conflicts.
 
-**`quick` mode:** answer in chat — the relevant lenses you ran, a findings table, and the
-recommendation per finding inline. Write no files. Offer to hand off to `write-plan` if the user
-wants it saved.
+## Step 5: Deliver
 
-**`default` / `deep` modes:** write the report. Assemble the 4 files by **editing the returned
-findings** — do not re-read the code you already fanned out over.
+**`quick` mode:** answer in chat. Give the relevant lenses you ran, a findings table, and the
+recommendation per finding inline. Write no files. Offer a handoff to `write-plan` if the user wants
+the answer saved.
 
-**Gate 3 fires here** (large scope, and always `deep`) — see [GATES.md](GATES.md). Small scope skips
-straight to writing.
+**`default` and `deep` modes:** write the report. Assemble the 4 files by **editing the findings the
+subagents returned**. Do not re-read the code you already scanned.
+
+**Gate 3 fires here** (large scope, and always `deep`). See [GATES.md](GATES.md). A small scope goes
+straight to the write step.
 
 Create `.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/` with exactly **four** files.
-Docs 1–2 are shared; docs 3–4 use the variant for the issue's kind. The shared skeleton and the
-ordering scales are in [TEMPLATES.md](TEMPLATES.md); docs 3–4 come from the kind's file —
+Docs 1–2 are shared. Docs 3–4 use the variant for the issue's kind. The shared skeleton and the
+ordering scales are in [TEMPLATES.md](TEMPLATES.md). Docs 3–4 come from the kind's file, either
 [BUG_TEMPLATES.md](BUG_TEMPLATES.md) or [FEATURE_TEMPLATES.md](FEATURE_TEMPLATES.md).
 
-Findings (doc 3) and recommendations (doc 4) stay apart, linked by **finding ID** (`F-01`,
-`F-02`, …) so each can be explored later on its own. Then show the findings table and the report
+Findings (doc 3) and recommendations (doc 4) stay apart. A **finding ID** (`F-01`, `F-02`, …) links
+them, so each finding can be explored later on its own. Then show the findings table and the report
 path in chat.
 
 ## Notes
 
-- **Ordering scale and field definitions** live in [TEMPLATES.md](TEMPLATES.md) — bug findings
-  order by severity, feature findings by reversibility. The orchestrator owns the final scale:
-  normalize the provisional values subagents return so it means the same thing report-wide.
-- **No findings** is a valid result — say so plainly rather than inventing low-value ones.
-- When fanning out, **you** own the final dedupe/merge; subagents detect and report, you reconcile
+- **The ordering scale and the field definitions** live in [TEMPLATES.md](TEMPLATES.md). Bug
+  findings are ordered by severity, and feature findings by reversibility. The orchestrator owns the
+  final scale. Normalize the provisional values the subagents return, so a value means the same
+  thing across the whole report.
+- **No findings is a valid result.** Say so plainly. Do not invent low-value findings.
+- **You own the final dedupe and merge with a fan-out.** Subagents detect and report. You reconcile
   and write.
-- **Handoff:** if a finding is a reproducible bug the user wants fixed *now*, hand off to the
-  `diagnose` skill (it builds a repro loop and fixes one bug). This skill stays at analysis.
-- **Next step:** after delivering the report (or quick-mode answer), recommend the `write-plan`
-  skill — **point it at the report directory and name which findings (`F-NN`) the plan should
-  address**. It reads doc 4 (`04-improvement-suggestions.md` for a bug, `04-recommended-approach.md`
-  for a feature) as the plan's raw material, seeds the Approach section's **Now** lines from `02-current-state.md`, and
-  reuses the scope estimate in `01-summary.md` for its single-plan-vs-epic call. From there
-  `execute-plan` carries the plan out gate by gate. The full chain is **analyze-issue →
-  write-plan → execute-plan**. Recommend it; don't invoke it automatically.
+- **Handoff:** a finding may be a reproducible bug the user wants fixed *now*. Then hand it to the
+  `diagnose` skill, which builds a repro loop and fixes one bug. This skill stays at analysis.
+- **Next step:** recommend the `write-plan` skill after you deliver the report or the quick-mode
+  answer. **Give `write-plan` the report directory. Name the findings (`F-NN`) the plan should
+  address.** `write-plan` reads doc 4 as the plan's raw material. Doc 4 is
+  `04-improvement-suggestions.md` for a bug and `04-recommended-approach.md` for a feature. It seeds
+  the **Now** lines of the Approach section from `02-current-state.md`. It reuses the scope estimate
+  in `01-summary.md` for its
+  single-plan-vs-epic call. `execute-plan` then runs the plan gate by gate. The full chain is
+  **analyze-issue → write-plan → execute-plan**. Recommend it. Do not invoke it automatically.

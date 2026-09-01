@@ -15,18 +15,18 @@ description: >
 
 # GitHub Issue Create Workflow
 
-Use **`gh`** to create the issue. Use `git` locally only to resolve the repo and to
-read template files. Require `gh` to be authenticated and `git` to be present.
+Use **`gh`** to create the issue. Use `git` only for two local jobs. It finds the repo, and it
+reads template files. `gh` must be authenticated. `git` must be installed.
 
-## Step 0 — Resolve repo and identity
+## Step 0: Resolve repo and identity
 
-Run the resolution commands in [MECHANICS.md](MECHANICS.md) to get `{owner}`, `{repo}`, and —
-if self-assignment comes up later — your login as `{me}`. Those three names are used by every
-`gh` call below.
+Run the commands in [MECHANICS.md](MECHANICS.md). They give you `{owner}` and `{repo}`. They also
+give your login as `{me}`, which you need only for self-assignment later. Every `gh` call below
+uses these three names.
 
 Not in a repo → tell the user to `cd` into the project. `gh` not authenticated → `gh auth login`.
 
-## Step 1 — Detect issue templates
+## Step 1: Detect issue templates
 
 Look in the current project for templates:
 
@@ -36,84 +36,89 @@ ls .github/ISSUE_TEMPLATE/ 2>/dev/null
 ls .github/ISSUE_TEMPLATE.md .github/issue_template.md 2>/dev/null
 ```
 
-If `.github/ISSUE_TEMPLATE/` exists, listing the directory (rather than globbing specific extensions) is the safest way to catch `.md`, `.yml`, AND `.yaml` templates. Do NOT use a glob like `*.md *.yml` — it silently skips `.yaml`, which is the form-template extension many repos use.
+If `.github/ISSUE_TEMPLATE/` exists, list the whole directory. Do NOT glob for specific extensions. The directory listing catches `.md`, `.yml`, AND `.yaml` templates. A glob like `*.md *.yml` skips `.yaml` without any warning. Many repos use `.yaml` for their form templates.
 
 Three cases:
 
-- **No templates** → use default body structure (Step 3).
-- **Single template** → use it directly. Tell user which template was picked.
-- **Multiple templates** → list them by filename + frontmatter `name:` field. Read each template (with the Read tool) so you understand its schema before presenting choices. Ask user which one, OR pick from conversation context if obvious (e.g. user said "bug" + `bug_report.yaml` exists). If 2+ templates plausibly apply (e.g. chore vs refactor vs optimization for a cleanup task), ALWAYS ask — do not silently default.
+- **No templates** → use the default body structure (Step 3).
+- **Single template** → use it directly. Tell the user which template you picked.
+- **Multiple templates** → list them by filename and frontmatter `name:` field. Read each template with the Read tool. You must know the schema of each one before you offer a choice. Ask the user which template to use. You can also pick from conversation context when the choice is obvious. For example, the user says "bug" and `bug_report.yaml` exists. If two or more templates can apply, ALWAYS ask. For example, chore, refactor, and optimization all fit a cleanup task. Never pick a default in silence.
 
-For `.yml` / `.yaml` form templates: read the schema (`title:` prefix, `labels:`, `body[].attributes.label`, required checkbox blocks) to understand required fields. The body draft must include each labeled section. Note: `gh issue create` takes a single markdown `body` string — form-template structure (including any required `checkboxes` blocks like "Before submission") is NOT auto-rendered, so reproduce those sections as markdown (with checkboxes) in the body yourself.
+For `.yml` and `.yaml` form templates, read the schema to find the required fields. The schema holds the `title:` prefix, `labels:`, `body[].attributes.label`, and the required checkbox blocks. The body draft must include each labeled section. `gh issue create` takes a single markdown `body` string. It does NOT render the form-template structure for you. This includes any required `checkboxes` block, such as "Before submission". Write those sections yourself as markdown, with the checkboxes.
 
-## Step 2 — Gather issue content
+## Step 2: Gather issue content
 
-Pull from conversation context first. If gaps, ask user:
+Take the content from conversation context first. Ask the user about each gap.
 
-- **Title**: concise, imperative. Format: `{verb} {object}` — e.g. "Fix login redirect loop on Safari".
-- **Description**: what is the bug / feature / task. Why it matters.
-- **Steps to reproduce** (bugs only): numbered list.
-- **Expected vs actual** (bugs only).
-- **Acceptance criteria** (features only): bullet list.
-- **Labels**: derive from template frontmatter `labels:` if set; else ask user.
-- **Assignee**: ask if user wants to self-assign (`{me}`) or leave unassigned.
-- **Issue type**: assign automatically when the repo's org has issue types configured.
-  List the valid types with:
+| Field | What to put in it |
+|---|---|
+| Title | Short and imperative. Format: `{verb} {object}`. Example: "Fix login redirect loop on Safari". |
+| Description | The bug, the feature, or the task. Also why it matters. |
+| Steps to reproduce | Bugs only. A numbered list. |
+| Expected vs actual | Bugs only. |
+| Acceptance criteria | Features only. A bullet list. |
+| Labels | Take them from the template frontmatter `labels:` field. If it is not set, ask the user. |
+| Assignee | Ask the user for self-assignment (`{me}`) or for no assignee. |
 
-  ```bash
-  gh api orgs/{owner}/issue-types --jq '.[].name'
-  ```
+### Issue type
 
-  This returns 404 for a personal/user account (no org) — then skip type entirely and rely
-  on labels alone. When types exist, map the issue's intent to the closest available type by
-  name (case-insensitive, allow common synonyms):
+Assign a type when the repo's org has issue types configured. List the valid types with:
 
-  | Intent                              | Pick a type named like        |
-  |-------------------------------------|-------------------------------|
-  | bug / defect / regression           | `Bug`                         |
-  | feature / enhancement / request     | `Feature` or `Enhancement` (`enh`) |
-  | chore / refactor / task / docs      | `Task`                        |
+```bash
+gh api orgs/{owner}/issue-types --jq '.[].name'
+```
 
-  The listed type names are the source of truth — match against them, never invent one. If a
-  template was chosen, let it drive the intent (e.g. `bug_report.yaml` → bug). If nothing
-  matches with confidence, omit the type rather than guess.
+The command returns 404 for a personal account, because it has no org. In that case, skip the
+type and use the labels alone. When types exist, match the issue intent to the closest type name.
+Ignore case, and allow common synonyms.
 
-## Step 3 — Build issue body
+| Intent                              | Pick a type named like        |
+|-------------------------------------|-------------------------------|
+| bug / defect / regression           | `Bug`                         |
+| feature / enhancement / request     | `Feature` or `Enhancement` (`enh`) |
+| chore / refactor / task / docs      | `Task`                        |
 
-Shapes are in [TEMPLATES.md](TEMPLATES.md). Which one depends on Step 1:
+The listed type names are the source of truth. Match against them, and never invent one. If you
+chose a template, the template sets the intent. For example, `bug_report.yaml` means a bug. If no
+type matches with confidence, omit the type. Do not guess.
 
-- **Repo has a template** → fill every section of *theirs*. Do not skip one — use "N/A" if truly
-  not applicable. Keep template comments (`<!-- ... -->`) only where they help a reader.
-- **No template** → the default body skeleton in TEMPLATES.md, trimmed to the issue kind (a bug
-  fills reproduce/expected/actual; a feature fills acceptance criteria).
+## Step 3: Build issue body
 
-## Step 4 — Write draft file
+[TEMPLATES.md](TEMPLATES.md) holds the shapes. Step 1 decides which shape you use.
+
+- **Repo has a template** → fill every section of *their* template. Do not skip a section. Write
+  "N/A" when a section truly does not apply. Keep template comments (`<!-- ... -->`) only where
+  they help a reader.
+- **No template** → use the default body skeleton in TEMPLATES.md. Cut it down to the issue kind.
+  A bug fills reproduce, expected, and actual. A feature fills acceptance criteria.
+
+## Step 4: Write draft file
 
 Filename: lowercase title, words joined by underscores, max ~6 words, `.md` extension.
 Example: "Fix login redirect loop on Safari" → `fix_login_redirect_loop_safari.md`
 
-Write the draft to `.agents/scratch/draft-issues/{filename}` in the project root, using the
-draft-file shape in [TEMPLATES.md](TEMPLATES.md). Create the directory if missing (`mkdir -p`).
-Add `.agents/scratch/` to `.gitignore` if not present (check with
-`grep -q "\.agents/scratch" .gitignore`).
+Write the draft to `.agents/scratch/draft-issues/{filename}` in the project root. Use the
+draft-file shape in [TEMPLATES.md](TEMPLATES.md). Create the directory with `mkdir -p` if it does
+not exist. Add `.agents/scratch/` to `.gitignore` if the line is not there. Check with
+`grep -q "\.agents/scratch" .gitignore`.
 
-Then show the user the confirm block from TEMPLATES.md and wait for their word.
+Then show the user the confirm block from TEMPLATES.md. Wait for their answer.
 
-## Step 5 — Validate labels (only after user confirms)
+## Step 5: Validate labels (only after user confirms)
 
-Before creating, validate each label exists on the repo:
+Before you create the issue, check that each label exists on the repo:
 
 ```bash
 gh api repos/{owner}/{repo}/labels/{label_name}
 ```
 
-Returns 404 if the label doesn't exist. If any label is missing, tell the user which one
-and ask them to pick an existing label or drop it. Do not invent labels.
+The command returns 404 when the label does not exist. Tell the user which label is missing. Ask
+the user to pick a label that exists, or to remove it. Do not invent labels.
 
-## Step 6 — Create issue
+## Step 6: Create issue
 
-Re-read the draft file before creating in case the user edited it. Use the body content
-after the `---` metadata separator.
+Read the draft file again before you create the issue, because the user may have edited it. Use
+the body content after the `---` metadata separator.
 
 ```bash
 gh issue create \
@@ -124,18 +129,20 @@ gh issue create \
   --assignee "@me"          # omit flag if unassigned
 ```
 
-`--type` takes the type name exactly as listed by `gh api orgs/{owner}/issue-types`. Older `gh`
-builds don't know the flag — [MECHANICS.md](MECHANICS.md) has the fallback.
+`--type` takes the type name exactly as `gh api orgs/{owner}/issue-types` lists it. Older `gh`
+builds do not know the flag. [MECHANICS.md](MECHANICS.md) has the fallback.
 
-After success, report the issue number and URL from the command output.
+After the command succeeds, report the issue number and URL from the output.
 
-Offer to delete draft: "Delete .agents/scratch/draft-issues/{filename}?"
+Offer to delete the draft. Ask: "Delete .agents/scratch/draft-issues/{filename}?"
 
 ## Error handling
 
-- `gh` not authenticated → tell user to run `gh auth login`
-- Not in git repo → `cd` first
-- No `origin` remote / can't parse owner+repo → ask user for `{owner}/{repo}`
-- Repo has issues disabled → `gh issue create` will fail; report the error and abort
-- Title empty → ask user for title
-- Label doesn't exist on repo (404 from `gh api`) → ask user to pick an existing label or drop it
+| Problem | What to do |
+|---|---|
+| `gh` is not authenticated | Tell the user to run `gh auth login`. |
+| You are not in a git repo | Tell the user to `cd` into the project first. |
+| No `origin` remote, or you cannot parse the owner and repo | Ask the user for `{owner}/{repo}`. |
+| The repo has issues disabled | `gh issue create` fails. Report the error and stop. |
+| The title is empty | Ask the user for a title. |
+| The label does not exist on the repo (404 from `gh api`) | Ask the user to pick a label that exists, or to remove it. |

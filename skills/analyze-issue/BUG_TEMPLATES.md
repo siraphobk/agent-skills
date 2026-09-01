@@ -1,11 +1,12 @@
-# Bug / Investigation Report — docs 3–4
+# Bug / Investigation Report: docs 3–4
 
-Use with the shared skeleton and the severity/confidence scales in [TEMPLATES.md](TEMPLATES.md).
-Findings (doc 3) and suggestions (doc 4) are linked by **finding ID** (`F-01`, `F-02`, …).
+Use this file with the shared skeleton and the severity and confidence scales in
+[TEMPLATES.md](TEMPLATES.md). A **finding ID** (`F-01`, `F-02`, …) links the findings (doc 3) to
+the suggestions (doc 4).
 
-## 01-summary.md — bug bits
+## 01-summary.md: the bug parts
 
-Drop these into the shared `01-summary.md` skeleton.
+Put these into the shared `01-summary.md` skeleton.
 
 **Findings index:**
 
@@ -26,7 +27,8 @@ Drop these into the shared `01-summary.md` skeleton.
 
 ## 03-gaps-bugs-risks.md
 
-One section per finding, ordered by severity (highest first). No fixes here — only what's wrong.
+Write one section per finding. Order the sections by severity, highest first. Put no fixes here.
+State only what is wrong.
 
 ```md
 # Gaps, Bugs & Risks
@@ -54,7 +56,8 @@ One section per finding, ordered by severity (highest first). No fixes here — 
 
 ## 04-improvement-suggestions.md
 
-One section per finding ID, matching doc 3. Approach or pseudocode only — **no full implementation**.
+Write one section per finding ID. The sections match doc 3. Give an approach or pseudocode only.
+**Write no full implementation.**
 
 ```md
 # Improvement Suggestions

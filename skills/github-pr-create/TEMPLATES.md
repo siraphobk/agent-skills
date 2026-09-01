@@ -1,12 +1,13 @@
-# PR Templates — the output shapes
+# PR template shapes
 
-Five literal shapes [SKILL.md](SKILL.md) fills in — the last two are stack-only. Every branch about
-*which* shape to use lives in SKILL.md; this file only holds the shapes themselves.
+This file holds five literal shapes that [SKILL.md](SKILL.md) fills in. The last two shapes are for
+a stack only. SKILL.md holds every decision about *which* shape to use. This file holds only the
+shapes themselves.
 
 ## Default PR body (no repo template)
 
-Used when Step 2 found no `.github/PULL_REQUEST_TEMPLATE*`. Each section names what feeds it —
-the Step 3 deliverable when there is one, the diff when there isn't.
+Use this shape when Step 2 found no `.github/PULL_REQUEST_TEMPLATE*`. Each section names what feeds
+it. The Step 3 deliverable feeds it when there is one. The diff feeds it when there is not.
 
 ```markdown
 ## Summary
@@ -30,8 +31,8 @@ deliverable or the list is empty>
 
 ## Draft file wrapper
 
-Written to `.agents/scratch/draft-prs/{filename}`. The title and base live in the header so the
-user can check them without re-reading the body.
+Write this file to `.agents/scratch/draft-prs/{filename}`. The title and the base live in the
+header. The user can check them there and does not need to read the body.
 
 ```markdown
 # PR Draft — {branch name}
@@ -47,8 +48,8 @@ user can check them without re-reading the body.
 
 ## Confirm block
 
-Printed in chat once the draft file is written, for a single PR. Stop here — Step 6 needs a
-separate go for the push and the PR both.
+Print this block in chat for a single PR, after you write the draft file. Stop here. Step 6 needs a
+separate approval for both the push and the PR.
 
 ```
 Draft written to .agents/scratch/draft-prs/{filename}
@@ -61,8 +62,8 @@ or tell me what to change.
 
 ## Stack draft file wrapper
 
-One file per rung, same path as above. The header carries the rung's position and its parent, so
-the user can check the chain without opening the other drafts.
+Write one file per rung, at the same path as above. The header carries the rung's position and its
+parent. The user can check the chain there and does not need to open the other drafts.
 
 ```markdown
 # PR Draft — {branch name}
@@ -78,13 +79,13 @@ the user can check the chain without opening the other drafts.
 {pr body}
 ```
 
-No stack navigation section goes in the body. GitHub's native Stack renders the chain itself; a
-hand-written table would duplicate it and drift as the stack changes.
+Put no stack navigation section in the body. GitHub's native Stack renders the chain itself. A
+hand-written table would duplicate the chain, and it would go out of date as the stack changes.
 
 ## Stack confirm block
 
-Replaces the single-PR confirm block when a chain was detected. Shows the whole stack, marks which
-rungs already have PRs, and names every branch `gh stack link` will push.
+This block replaces the single-PR confirm block when you detect a chain. It shows the whole stack.
+It marks which rungs already have PRs. It names every branch that `gh stack link` will push.
 
 ```
 Detected stack ({total} rungs, {n} PR(s) to create):

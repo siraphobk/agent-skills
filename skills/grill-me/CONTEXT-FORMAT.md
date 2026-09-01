@@ -24,19 +24,28 @@ _Avoid_: Client, buyer, account
 
 ## Rules
 
-- **Be opinionated.** When multiple words exist for the same concept, pick the best one and list the others as aliases to avoid.
-- **Flag conflicts explicitly.** If a term is used ambiguously, call it out in "Flagged ambiguities" with a clear resolution.
-- **Keep definitions tight.** One or two sentences max. Define what it IS, not what it does.
-- **Show relationships.** Use bold term names and express cardinality where obvious.
-- **Only include terms specific to this project's context.** General programming concepts (timeouts, error types, utility patterns) don't belong even if the project uses them extensively. Before adding a term, ask: is this a concept unique to this context, or a general programming concept? Only the former belongs.
-- **Group terms under subheadings** when natural clusters emerge. If all terms belong to a single cohesive area, a flat list is fine.
-- **Write an example dialogue.** A conversation between a dev and a domain expert that demonstrates how the terms interact naturally and clarifies boundaries between related concepts.
+| Rule | What to do |
+|---|---|
+| **Be opinionated.** | Pick the best word for a concept. List the other words as aliases to avoid. |
+| **Flag conflicts explicitly.** | Record an ambiguous term under "Flagged ambiguities" with a clear resolution. |
+| **Keep definitions tight.** | One or two sentences at most. Define what the term IS, not what it does. |
+| **Show relationships.** | Use bold term names. State the cardinality where it is obvious. |
+| **Include only terms specific to this project's context.** | Exclude general programming concepts. See the notes below. |
+| **Group terms under subheadings.** | Group them when natural clusters emerge. |
+| **Write an example dialogue.** | Show a dev and a domain expert who use the terms. |
+
+Notes on the table above:
+
+- A general programming concept does not belong, even when the project uses it a lot. Timeouts, error types, and utility patterns are examples.
+- Ask one question before you add a term. Is this concept unique to this context, or is it a general programming concept? Only a concept unique to this context belongs.
+- A flat list is fine when all terms belong to a single cohesive area.
+- The dialogue shows how the terms interact naturally. It also clarifies the boundaries between related concepts.
 
 ## Single vs multi-context repos
 
 **Single context (most repos):** One `CONTEXT.md` at the repo root.
 
-**Multiple contexts:** A `CONTEXT-MAP.md` at the repo root lists the contexts, where they live, and how they relate to each other:
+**Multiple contexts:** Put a `CONTEXT-MAP.md` at the repo root. It lists the contexts, where they live, and how they relate to each other:
 
 ```md
 # Context Map
@@ -56,8 +65,9 @@ _Avoid_: Client, buyer, account
 
 The skill infers which structure applies:
 
-- If `CONTEXT-MAP.md` exists, read it to find contexts
-- If only a root `CONTEXT.md` exists, single context
-- If neither exists, create a root `CONTEXT.md` lazily when the first term is resolved
+- If a `CONTEXT-MAP.md` exists, read it to find the contexts.
+- If only a root `CONTEXT.md` exists, the repo has a single context.
+- If neither file exists, create a root `CONTEXT.md` lazily when the first term resolves.
 
-When multiple contexts exist, infer which one the current topic relates to. If unclear, ask.
+When multiple contexts exist, infer which one the current topic relates to. If it is unclear, ask
+the user.

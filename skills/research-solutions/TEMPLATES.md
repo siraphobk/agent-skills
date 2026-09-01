@@ -1,40 +1,42 @@
 # Output templates
 
-The four files, the scales they share, and one worked example at the density to
-aim for. Copy the structure; omit a section only when it would be genuinely empty.
+This file holds the four output files, the scales they share, and one worked
+example. The example shows the density to aim for. Copy the structure. Omit a
+section only when it would be genuinely empty.
 
 ## Scales
 
-**Evidence grade** — every claim in `02` and `03` carries one.
+**Evidence grade.** Every claim in `02` and `03` carries one.
 
 | Grade | Means |
 |---|---|
-| **A** | Normative — an RFC, a formal spec, a published standard. |
-| **B** | Official — the vendor's own docs, API reference, or changelog. |
-| **C** | Practitioner — engineering blog, conference talk, or a well-regarded open source implementation. |
-| **D** | Community — forum answer, unofficial post, second-hand summary. |
-| **I** | Inference — your own reasoning. Not sourced, and never disguised as sourced. |
-| **S** | Our system — read directly from our code, manifests, or live cluster. Must carry a `file:line` or a resource name. |
-| **U** | The user said so — an architecture fact, decision, or constraint that isn't in the repo. |
+| **A** | Normative. An RFC, a formal spec, or a published standard. |
+| **B** | Official. The vendor's own docs, API reference, or changelog. |
+| **C** | Practitioner. An engineering blog, a conference talk, or a well-regarded open source implementation. |
+| **D** | Community. A forum answer, an unofficial post, or a second-hand summary. |
+| **I** | Inference. Your own reasoning. It is not sourced, and never disguised as sourced. |
+| **S** | Our system. Read directly from our code, manifests, or live cluster. Must carry a `file:line` or a resource name. |
+| **U** | The user said so. An architecture fact, decision, or constraint that is not in the repo. |
 
-**A**–**D** grade claims about the outside world; **S** and **U** grade claims
-about ours. A feasibility claim with no **S** or **U** behind it is an **I** —
-label it that way, however obvious it feels.
+**A** to **D** grade claims about the outside world. **S** and **U** grade claims
+about our own system. A feasibility claim with no **S** or **U** behind it is an
+**I**. Label it that way, however obvious it feels.
 
 Anything the recommendation depends on that is **D** or **I** goes in the
-unverified list. That list is the honest part of the report — don't shrink it.
+unverified list. That list is the honest part of the report. Do not shrink it.
 
-**Cost-to-reverse** — same scale `analyze-issue` uses, so the two reports line up.
+**Cost-to-reverse.** This is the same scale that `analyze-issue` uses, so the two
+reports match.
 
 | Level | Means |
 |---|---|
-| **Architecture** | Undoing it touches contracts, data shape, or other teams. |
+| **Architecture** | To undo it touches contracts, data shape, or other teams. |
 | **Module-shape** | Contained to one module's internals, but a real rewrite. |
 | **Local** | A few files. Undo it in an afternoon. |
 
-**Effort** — agent-days, sized at AI pace (see *Character* in the brain index).
-**Fit** — Good / Workable / Poor against the Tech Profile in your agent's user-level instructions file,
-with one line on what makes it that.
+**Effort.** Give it in agent-days, sized at AI pace. See *Character* in the brain index.
+**Fit.** Rate it Good, Workable, or Poor against the Tech Profile in your agent's
+user-level instructions file. Add one line on what makes it that rating.
 
 ---
 
@@ -109,8 +111,9 @@ here, named.>
 
 ## `03-approaches.md`
 
-One section per approach, recommended first, rejected last. Every approach gets
-every field — a blank field is a research gap, not a shortcut.
+Write one section per approach. Put the recommended one first and the rejected
+ones last. Every approach gets every field. A blank field is a research gap, not
+a shortcut.
 
 ```md
 ## A-01 — <name>   *(recommended)*
@@ -149,8 +152,8 @@ non-issue.>
 <The improvements this approach opens up but does not need on day one.>
 ```
 
-Rejected approaches keep the same header and add one field, and may leave the
-detail fields short:
+A rejected approach keeps the same header and adds one field. It may leave the
+detail fields short.
 
 ```md
 ## A-03 — <name>   *(rejected)*
@@ -174,11 +177,12 @@ a doc to find, a support question to ask, or a spike to run.>
 
 ---
 
-## Worked example — density calibration
+## Worked example: density calibration
 
-Illustrative only; sources are placeholders. Real output cites real fetched URLs.
+This example is illustrative only. The sources are placeholders. Real output
+cites real fetched URLs.
 
-> **Too coarse** — this is the failure mode to avoid:
+> **Too coarse.** This is the failure mode to avoid.
 >
 > ```md
 > ## A-01 — Webhook integration *(recommended)*
@@ -189,12 +193,12 @@ Illustrative only; sources are placeholders. Real output cites real fetched URLs
 > **Effort:** ~3d · **Cost-to-reverse:** Module-shape · **Fit:** Good
 > ```
 >
-> Nothing here is wrong. Nothing here is usable either — every hard question
-> ("what happens on a duplicate?", "do we even have a worker?") is exactly the
-> one it skipped. "Our system can support this" with no reference is a guess
-> formatted as a finding.
+> Nothing here is wrong. Nothing here is usable either. Every hard question is
+> exactly the one it skipped. Two examples: "what happens on a duplicate?" and
+> "do we even have a worker?". The line "Our system can support this" carries no
+> reference, so it is a guess formatted as a finding.
 
-**Right density** — the same approach, actually researched:
+**Right density.** This is the same approach, actually researched.
 
 ````md
 ## A-01 — Webhook-driven sync with a local event ledger   *(recommended)*
@@ -264,10 +268,13 @@ one CronJob.
 - Move reconcile from nightly to continuous once volume justifies it.
 ````
 
-**What makes it the right density:** every failure mode from the integration lens
-has a line; the `[I]` tags mark exactly where the vendor is silent and we're
-guessing; the `[S]` lines name real files, including the one that says a thing
-*doesn't* exist yet and how that was checked; the `[U]` line records what only
-the user could tell us; the diagram lines carry outcomes, not labels; and
-cost-to-reverse names *what* survives a vendor swap instead of just picking a
-level.
+**What makes it the right density:**
+
+| Element | What it shows |
+|---|---|
+| Failure modes | Every mode from the integration lens has a line. |
+| `[I]` tags | Exactly where the vendor is silent and we guess. |
+| `[S]` lines | Real files, including the one that says a thing does *not* exist yet, and how that was checked. |
+| `[U]` line | What only the user could tell us. |
+| Diagram lines | Outcomes, not labels. |
+| Cost-to-reverse | *What* survives a vendor swap, not only a level. |

@@ -1,25 +1,26 @@
-# Stacked PRs — the mechanics
+# Stacked PR mechanics
 
-What [SKILL.md](SKILL.md) uses when the branch sits on another feature branch instead of trunk.
-Needs the `gh-stack` extension (`gh extension install github/gh-stack`).
+[SKILL.md](SKILL.md) uses this file when the branch sits on another feature branch instead of
+trunk. This needs the `gh-stack` extension. Install it with `gh extension install github/gh-stack`.
 
-This skill **creates** a stack. It does not maintain one — `sync`, `rebase`, `modify`, and `merge`
-belong to `gh stack` itself, run directly.
+This skill **creates** a stack. It does not maintain one. The `sync`, `rebase`, `modify`, and
+`merge` commands belong to `gh stack` itself. Run them directly.
 
-## Detecting the chain
+## Detect the chain
 
-Two paths. Try the cheap one first:
+There are two paths. Try the cheap one first.
 
 ```bash
 gh stack view --json
 ```
 
-Output means the stack is already tracked locally — use that order and skip the walk. The message
-`is not part of a stack` means no local tracking; fall back to the walk below. Match on that text,
-not the exit code.
+Output means the stack already has local tracking. Use that order and skip the walk. The message
+`is not part of a stack` means there is no local tracking. Then use the walk below. Match on that
+text, not on the exit code.
 
-The walk: a rung is a local branch that is an **ancestor of HEAD** but **not an ancestor of trunk**.
-That second test is what drops trunk itself and any stale branch parked on trunk's history.
+In the walk, a rung is a local branch. It must be an **ancestor of HEAD**. It must not be an
+**ancestor of trunk**. The second test drops trunk itself. It also drops any stale branch that
+sits on trunk's history.
 
 ```bash
 cur=$(git branch --show-current); base=main   # base from MECHANICS.md
@@ -31,65 +32,66 @@ git for-each-ref --format='%(refname:short)' refs/heads/ | while read -r b; do
 done | sort -n
 ```
 
-Commit count sorts the rungs bottom-up. Append the current branch as the top rung. Each rung's base
-is the rung below it; the bottom rung's base is trunk.
+The commit count sorts the rungs from the bottom to the top. Add the current branch as the top
+rung. The base of each rung is the rung below it. The base of the bottom rung is trunk.
 
-Two branches on the *same* commit tie and sort arbitrarily — if the counts collide, show the user
-the chain and ask for the order rather than guessing.
+Two branches on the *same* commit tie, and they then sort in an arbitrary order. If the counts
+collide, show the user the chain and ask for the order. Do not guess.
 
-## Which rungs already have PRs
+## Find which rungs already have PRs
 
 ```bash
 gh pr list --head {branch} --state open --json number,url,baseRefName
 ```
 
-An existing PR is reused, never duplicated. Empty output means the rung needs one.
+Reuse an existing PR. Never duplicate one. Empty output means the rung needs a PR.
 
-## Diffing a rung
+## Diff a rung
 
-Diff each rung against **its own parent**, not trunk:
+Diff each rung against **its own parent**, not against trunk.
 
 ```bash
 git diff {parent}..{branch}
 ```
 
-`{base}..HEAD` would show every rung below it too, which is what makes a hand-rolled stacked PR
-unreviewable.
+`{base}..HEAD` would also show every rung below it. That is what makes a hand-rolled stacked PR
+hard to review.
 
-## Creating the stack
+## Create the stack
 
-`gh stack link` takes branches bottom to top. It pushes them, chains the base branches, opens any
-missing PRs, and builds the native Stack on GitHub — in one non-interactive call:
+`gh stack link` takes the branches from the bottom to the top. One non-interactive call pushes
+them, chains the base branches, opens any missing PRs, and builds the native Stack on GitHub.
 
 ```bash
 gh stack link --open {rung1} {rung2} {rung3}
 ```
 
-- `--open` marks the PRs ready for review; without it new PRs are created as drafts.
-- `--base {trunk}` if the bottom rung targets something other than the repo default.
-- **Use `link`, never `submit`.** `submit` opens a full-screen editor in a terminal, which hangs an
-  agent session, and its `--auto` escape hatch replaces the drafted titles with generated ones.
+- `--open` marks the PRs ready for review. Without it, the new PRs are created as drafts.
+- Add `--base {trunk}` when the bottom rung targets something other than the repo default.
+- **Use `link`, never `submit`.** `submit` opens a full-screen editor in a terminal, and that hangs
+  an agent session. Its `--auto` option replaces the drafted titles with generated ones.
 
-`link` sets no title or body, so install the drafted content per rung afterwards:
+`link` sets no title and no body. Install the drafted content for each rung afterwards.
 
 ```bash
 gh pr edit {number} --title "{title}" --body-file .agents/scratch/draft-prs/{filename}
 ```
 
-## No native stack available
+## No native stack is available
 
-Extension missing, or the repo has stacks turned off. Fall back to plain chaining — one call per
-rung, bottom-up, after pushing each branch:
+The extension is missing, or the repo has stacks turned off. Use plain chaining instead. Push each
+branch, then make one call per rung from the bottom to the top.
 
 ```bash
 gh pr create --base {parent} --head {branch} --title "{title}" --body "{body}"
 ```
 
-Say in one line that the PRs are chained but not a GitHub Stack, and name the install command.
+Say in one line that the PRs are chained but are not a GitHub Stack. Name the install command too.
 
-## What to warn about once
+## Warn the user about these once
 
-- **Merge bottom-up.** A rung can't merge before the rung below it.
-- **Squash-merging a rung forces a rebase above it** — the squashed commit doesn't match the
-  history the rungs above carry. `gh stack sync` handles it.
-- **GitHub retargets children** when a merged rung's branch is deleted, so the stack survives.
+- **Merge from the bottom to the top.** A rung cannot merge before the rung below it.
+- **A squash-merge of a rung forces a rebase above it.** The squashed commit does not match the
+  history that the rungs above carry. `gh stack sync` handles this.
+- **GitHub retargets the child PRs** when someone deletes a merged rung's branch. The stack
+  survives.

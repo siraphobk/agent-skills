@@ -17,133 +17,143 @@ description: >
 
 # GitHub PR Create Workflow
 
-Use **`gh`** for PR creation and `git` for local branch context. Both must be present, `gh`
-authenticated. Stacks additionally need the `gh-stack` extension.
+Use **`gh`** to create the PR. Use `git` to get the local branch context. Both tools must be
+present, and `gh` must be authenticated. A stack also needs the `gh-stack` extension.
 
-## Step 1 — Gather branch context, then check for a stack
+## Step 1: Gather the branch context, then check for a stack
 
-Run the context commands in [MECHANICS.md](MECHANICS.md) — they give you the branch, the
-`{owner}/{repo}`, the trunk branch, and the diff. Run them in parallel. Parse the issue number out
-of the branch name; no match means the PR simply has no "Closes" section, not an error.
+Run the context commands in [MECHANICS.md](MECHANICS.md). They give you the branch, the
+`{owner}/{repo}`, the trunk branch, and the diff. Run them in parallel. Parse the issue number
+from the branch name. No match is not an error. It means the PR has no "Closes" section.
 
-Then decide which path this run takes, using [STACKS.md](STACKS.md) to detect the chain:
+Then use [STACKS.md](STACKS.md) to detect the chain and to decide which path this run takes.
 
-- **Single PR** — nothing sits between this branch and trunk. Steps 3–6 run once.
-- **Stack** — one or more feature branches sit below it. Steps 3–5 run **once per rung** that has
-  no PR yet, and Step 6 creates them together.
+- **Single PR.** Nothing sits between this branch and trunk. Steps 3 to 6 run once.
+- **Stack.** One or more feature branches sit below this branch. Steps 3 to 5 run **once per
+  rung** that has no PR yet. Step 6 creates the PRs together.
 
-Show the detected chain before doing the work. A wrong chain wastes every step after it.
+Show the detected chain before you do the work. A wrong chain wastes every step after it.
 
-## Step 2 — Check for PR template
+## Step 2: Check for a PR template
 
 ```bash
 find .github -maxdepth 2 -type f \
   \( -iname 'pull_request_template*' -o -ipath '*PULL_REQUEST_TEMPLATE/*.md' \) 2>/dev/null | head -1
 ```
 
-A template found means the PR body must follow *that* structure exactly, filling each section from
-the diff and issue context — for every rung of a stack. None found means Step 4's default.
+If you find a template, the PR body must follow *that* structure exactly. Fill each section from
+the diff and the issue context. Do this for every rung of a stack. If you find no template, use
+the default body from Step 4.
 
-## Step 3 — Look for a deliverable record
+## Step 3: Look for a deliverable record
 
-If the work came from `execute-plan`, it left a record of what actually shipped. Check:
+If the work came from `execute-plan`, it left a record of what shipped. Check for that record.
 
 ```bash
 ls .agents/scratch/deliverables/*.md 2>/dev/null
 ```
 
-Pick the one matching this branch — the file's `Branch:` header line is the reliable match; a
-slug resembling the branch name is the fallback. If more than one plausibly matches, ask which.
-Read it in full.
+Pick the file that matches this branch. The file's `Branch:` header line is the reliable match. A
+slug that resembles the branch name is the fallback. If more than one file looks like a match, ask
+the user which one to use. Read the whole file.
 
-**For a stack, expect one file, not one per rung.** `execute-plan` writes a single deliverable per
-epic, and its `Branch:` header names only the branch it last ran on — so that header will match at
-most one rung. Match the epic file by its directory slug instead, then slice it per rung: the
-sub-plan number prefixes its entries (`### [x] 02 · Phase 1 — …`, and `**02-<slug>**` under the
-acceptance criteria). Each rung's PR body gets only its own sub-plan's slices.
+**For a stack, expect one file, not one file per rung.** `execute-plan` writes a single deliverable
+per epic. Its `Branch:` header names only the branch it ran on last, so that header matches at most
+one rung. Match the epic file by its directory slug instead. Then split the file per rung. The
+sub-plan number prefixes its entries. Two examples are `### [x] 02 · Phase 1 — …` and
+`**02-<slug>**` under the acceptance criteria. Each rung's PR body gets only the parts from its own
+sub-plan.
 
-It beats the diff for intent — a diff shows neither the **Deviations from the plan** (what reality
-forced mid-run) nor the **Not done / follow-ups** (what was deliberately left out).
+The record beats the diff for intent. A diff does not show the **Deviations from the plan**, which
+is what reality forced mid-run. A diff does not show the **Not done / follow-ups** either, which is
+what the run deliberately left out.
 
-Use it as the primary source in Step 4: its **Summary** seeds the PR summary, its **Verification
-output** seeds the test plan, its **Not done / follow-ups** becomes an out-of-scope note. Still
-read the diff and cross-check — the record covers planned work, and anything in the diff it
-doesn't mention needs explaining, not dropping.
+Use the record as the primary source in Step 4. Its **Summary** seeds the PR summary. Its
+**Verification output** seeds the test plan. Its **Not done / follow-ups** becomes an out-of-scope
+note. Still read the diff and cross-check it. The record covers planned work. Anything in the diff
+that the record does not mention needs an explanation, not a deletion.
 
-No deliverable file, or none matching? Say so in one line and build from the diff alone (Step 3b).
-Never invent a record.
+If there is no deliverable file, or if none matches, say so in one line. Then build the PR from the
+diff alone (Step 3b). Never invent a record.
 
-## Step 3b — Analyze changes
+## Step 3b: Analyze the changes
 
-Diff a single PR against trunk. Diff a rung against **its parent rung** — `git diff {parent}..{branch}`
-— so its PR shows only its own work. From that diff, determine:
+Diff a single PR against trunk. Diff a rung against **its parent rung** with
+`git diff {parent}..{branch}`. That makes the rung's PR show only its own work. Use that diff to
+determine two things.
 
-- **What changed**: summarize in plain language — files touched, features added/removed,
-  behavior modified. Group by logical area (e.g., "auth", "UI", "config").
-- **Breaking changes**: look for removed exports, changed function signatures, renamed
-  config keys, dropped API endpoints, changed CLI flags. If none found, state "None."
+- **What changed.** Summarize in plain language the files touched, the features added or removed,
+  and the behavior modified. Group the changes by area, such as "auth", "UI", or "config".
+- **Breaking changes.** Look for removed exports, changed function signatures, renamed config keys,
+  dropped API endpoints, and changed CLI flags. If you find none, state "None."
 
-## Step 4 — Write PR title and body
+## Step 4: Write the PR title and body
 
-**Title**: concise, imperative, ≤72 chars. Format: `{type}: {what changed}`.
-Type = fix / feat / chore / docs / refactor / perf — derived from branch prefix or changes.
+**Title.** Keep it short and imperative, at 72 characters or fewer. Use the format
+`{type}: {what changed}`. The type is fix, feat, chore, docs, refactor, or perf. Derive the type
+from the branch prefix or from the changes.
 
-**Body**: follow [TEMPLATES.md](TEMPLATES.md). Which shape you use depends on Step 2:
+**Body.** Follow [TEMPLATES.md](TEMPLATES.md). Step 2 decides which shape you use.
 
-- **Repo has a PR template** → fill every section of *theirs*. Do not skip or remove template
-  sections — leave "N/A" if truly not applicable. Feed the deliverable's content into whichever
-  sections fit; do not bolt extra sections onto someone's template.
-- **No template** → the default body skeleton in TEMPLATES.md, fed by the Step 3 deliverable.
+- **The repo has a PR template.** Fill every section of *their* template. Do not skip or remove a
+  template section. Leave "N/A" when a section truly does not apply. Feed the deliverable's content
+  into the sections that fit. Do not add extra sections to someone's template.
+- **The repo has no template.** Use the default body skeleton in TEMPLATES.md. Feed it from the
+  Step 3 deliverable.
 
-**Never claim a check that wasn't run.** The test plan reports what the deliverable
-actually recorded — a failed or skipped check stays visible in the PR body.
+**Never claim a check that nobody ran.** The test plan reports what the deliverable recorded. A
+failed check or a skipped check stays visible in the PR body.
 
-## Step 5 — Write draft file
+## Step 5: Write the draft file
 
-Draft filename from the branch name: lowercase, `/` and `-` → `_`, append `.md` — e.g.
-`bug-42/fix_auth_crash` → `bug_42_fix_auth_crash.md`.
+Build the draft filename from the branch name. Make it lowercase, change each `/` and `-` to `_`,
+and add `.md` at the end. For example, `bug-42/fix_auth_crash` becomes `bug_42_fix_auth_crash.md`.
 
-Write it to `.agents/scratch/draft-prs/{filename}` (`mkdir -p` first) using the draft-file shape in
-TEMPLATES.md — the stack wrapper when this is a rung, which records its position and parent. Add
-`.agents/scratch/` to `.gitignore` if missing (check with `grep -q "\.agents/scratch"`).
+Run `mkdir -p` first, then write the file to `.agents/scratch/draft-prs/{filename}`. Use the
+draft-file shape in TEMPLATES.md. Use the stack wrapper when this branch is a rung, because that
+wrapper records the rung's position and parent. Add `.agents/scratch/` to `.gitignore` when it is
+missing. Check for it with `grep -q "\.agents/scratch"`.
 
-Then show the confirm block from TEMPLATES.md — the stack one if this is a chain, printed once
-after every rung's draft is written — and wait for their word.
+Then show the confirm block from TEMPLATES.md. Use the stack confirm block when this is a chain,
+and print it once after you write every rung's draft. Then wait for the user's answer.
 
-## Step 6 — Create (only after user confirms)
+## Step 6: Create the PRs, only after the user confirms
 
-**Ask for the push on its own.** Approving the drafts approves the *text*, not the push —
-`rules/git-push.md` wants explicit permission in the same turn. Name every branch and the remote,
-then wait for a clear go.
+**Ask for the push on its own.** When the user approves the drafts, the user approves the *text*
+and not the push. `rules/git-push.md` wants explicit permission in the same turn. Name every branch
+and the remote. Then wait for a clear yes.
 
-**Single PR** — push, then create:
+**Single PR.** Push, then create.
 
 ```bash
 git push -u origin {branch}
 gh pr create --title "{title}" --base {trunk} --head {branch} --body-file {draft path}
 ```
 
-**Stack** — `gh stack link` pushes every rung, chains the bases, opens the missing PRs, and builds
-the Stack in one call; then install the drafted content per rung. Commands and the no-native-stack
-fallback: [STACKS.md](STACKS.md).
+**Stack.** One call to `gh stack link` pushes every rung, chains the bases, opens the missing PRs,
+and builds the Stack. Then install the drafted content for each rung. [STACKS.md](STACKS.md) holds
+the commands and the fallback for a repo with no native stack.
 
-Report every PR URL. Then offer to delete the draft files, naming them.
+Report every PR URL. Then offer to delete the draft files. Name each file in the offer.
 
 ## Error handling
 
-- `gh` not authenticated: tell the user to run `gh auth login`
-- Not in a git repo: tell user to `cd` into the project first
-- On trunk already, or no commits ahead of the base: warn, do nothing — the PR would be empty
-- Push rejected, or a pre-push hook fails: report the reason and stop, never bypass
-- `gh-stack` not installed: name `gh extension install github/gh-stack`, offer the plain fallback
-- A rung already has an open PR: reuse it, never open a second one
+| Problem | What to do |
+|---|---|
+| `gh` is not authenticated | Tell the user to run `gh auth login`. |
+| Not in a git repo | Tell the user to `cd` into the project first. |
+| On trunk already, or no commits ahead of the base | Warn the user and do nothing. The PR would be empty. |
+| Push rejected, or a pre-push hook fails | Report the reason and stop. Never bypass the hook. |
+| `gh-stack` is not installed | Name `gh extension install github/gh-stack`. Offer the plain fallback. |
+| A rung already has an open PR | Reuse that PR. Never open a second one. |
 
 ## Constraints
 
-- **Never push or open a PR without approval in the same turn.** Drafting is free; publishing is
-  not. `gh stack link` pushes as a side effect — say so in the ask, and name each branch it moves.
-- **Never edit a PR body that this run didn't create** without asking first.
+- **Never push or open a PR without approval in the same turn.** A draft costs nothing. A published
+  PR does not. `gh stack link` pushes as a side effect. Say that in the ask, and name each branch it
+  moves.
+- **Never edit a PR body that this run did not create.** Ask the user first.
 - **Never force push, and never push to a protected branch.** The head is always a feature branch.
-- **Never guess a stack order.** Ambiguous chain → show it and ask.
-- **This skill creates PRs; it does not maintain them.** Rebasing, syncing, restacking, and merging
-  a stack are `gh stack`'s job — point the user there rather than doing it here.
+- **Never guess a stack order.** If the chain is ambiguous, show it and ask the user.
+- **This skill creates PRs. It does not maintain them.** The rebase, the sync, the restack, and the
+  merge of a stack are `gh stack`'s job. Point the user there. Do not do that work here.

@@ -1,52 +1,56 @@
-# Splitting mechanics
+# Split mechanics
 
-What [SKILL.md](SKILL.md) Phase 5 runs to move changes out of the original branch and onto a rung.
-The original branch is read-only throughout — every command here reads *from* it and writes to the
-rung you are standing on.
+Phase 5 of [SKILL.md](SKILL.md) runs these commands. They move changes out of the original branch
+and onto a rung. The original branch stays read-only throughout. Every command here reads *from*
+the original branch. Every command writes to the rung that you stand on.
 
-Names used below: `{orig}` the original big branch, `{base}` the trunk it forked from, `{parent}`
-the rung below the one being built.
+This file uses three names. `{orig}` is the original big branch. `{base}` is the trunk that it
+forked from. `{parent}` is the rung below the rung that you build.
 
-## Starting a rung
+## Start a rung
 
-Always branch off the rung below, never off trunk:
+Always branch from the rung below. Never branch from the trunk.
 
 ```bash
 git switch -c {rung} {parent}      # bottom rung: {parent} is {base}
 ```
 
-## Method 1 — cherry-pick whole commits
+## Method 1: cherry-pick whole commits
 
-Use when Phase 2 found that commits already line up with layers. It keeps the original authorship
-and message, and it is the only method that survives a later `git rebase --update-refs` cleanly.
+Use this method when Phase 2 found that the commits already match the layers. It keeps the original
+authorship and message. It is also the only method that survives a later `git rebase --update-refs`
+cleanly.
 
 ```bash
 git cherry-pick {sha}              # one commit
 git cherry-pick {sha1}^..{sha3}    # an inclusive range, oldest first
 ```
 
-A conflict here means the commits are *not* as clean as they looked — stop, don't resolve by hand
-into a state nobody planned. Report it and re-propose that rung with Method 2.
+A conflict here means the commits are *not* as clean as they looked. Stop. Do not resolve the
+conflict by hand into a state that nobody planned. Report the conflict, and propose that rung again
+with Method 2.
 
-## Method 2 — copy whole files out of the original branch
+## Method 2: copy whole files out of the original branch
 
-Use when the commits are tangled across layers, which is the common case. This takes the file's
-**final** state on `{orig}`, ignoring how it got there.
+Use this method when the commits are tangled across layers. That is the common case. The method
+takes the **final** state of the file on `{orig}`. It ignores how the file reached that state.
 
 ```bash
 git checkout {orig} -- path/to/file.go path/to/other.go
 git add -A && git commit -m "feat: ..."
 ```
 
-The trap: a file copied at its final state may reference code that lands in a *later* rung. That is
-what the feature-flag arrangement below is for — and why every rung runs the build.
+There is one trap. A file that you copy at its final state may reference code that lands in a
+*later* rung. The feature-flag arrangement below handles that case. It is also the reason that
+every rung runs the build.
 
-## Method 3 — hunk-level splitting
+## Method 3: split a file by hunk
 
-Use for the files Phase 2 flagged as touched by more than one layer. Two ways, pick by size.
+Use this method for the files that Phase 2 flagged. Those are the files that more than one layer
+touches. There are two ways. Pick one by size.
 
-**Interactive, for a handful of hunks.** Bring the file in as a working-tree change, then stage
-only the parts this rung owns:
+**The interactive way suits a few hunks.** Move the file into the working tree as a change. Then
+stage only the parts that this rung owns.
 
 ```bash
 git checkout {orig} -- path/to/file.go   # file now staged at its final state
@@ -56,8 +60,8 @@ git commit -m "feat: ..."
 git checkout -- path/to/file.go          # discard the hunks that belong to a later rung
 ```
 
-**Patch file, for many hunks or a repeatable split.** Write the diff out, delete the hunks that
-belong elsewhere, apply what is left:
+**The patch-file way suits many hunks, or a split that you must repeat.** Write the diff to a file.
+Delete the hunks that belong elsewhere. Then apply what is left.
 
 ```bash
 git diff {base}..{orig} -- path/to/file.go > /tmp/file.patch
@@ -65,15 +69,15 @@ git diff {base}..{orig} -- path/to/file.go > /tmp/file.patch
 git apply --3way /tmp/file.patch
 ```
 
-`--3way` is what lets the patch apply even when the surrounding lines have moved. `git apply
---check` first if you want a dry run.
+`--3way` lets the patch apply even when the lines around it have moved. Run `git apply --check`
+first if you want a dry run.
 
-**Never hand-retype a hunk.** Copying it by eye is how a split silently loses a line.
+**Never retype a hunk by hand.** A copy by eye is how a split loses a line in silence.
 
 ## Deletions
 
-A `D` row from `git diff --name-status` is not a file copy — copying does nothing, and the file
-survives to the top of the stack. Remove it explicitly on the rung that owns it:
+A `D` row from `git diff --name-status` is not a file copy. A copy does nothing, and the file
+survives to the top of the stack. Remove the file explicitly on the rung that owns it.
 
 ```bash
 git rm path/to/dead_file.go
@@ -82,19 +86,19 @@ git rm path/to/dead_file.go
 Renames show as `R` (or a `D` plus an `A`). Do both halves on the *same* rung, or the build breaks
 on one of them.
 
-## Making each rung safe to merge alone
+## Make each rung safe to merge alone
 
-Every PR must be mergeable on its own with **no user-visible behaviour change** until the last one.
-Three arrangements, in order of preference:
+Every PR must be mergeable on its own. Users see **no behaviour change** until the last PR. Here
+are three arrangements, in order of preference.
 
-1. **Dead code.** New functions, types, and tables land unreferenced. Nothing calls them until the
-   wiring rung. Costs nothing, works for most splits.
-2. **Feature flag.** The new path exists and is reachable, but the flag is off by default. The last
-   PR in the stack flips the default. Use when the new code replaces an existing path rather than
-   sitting beside it.
-3. **Expand / contract.** For schema and API changes: the early rung adds the new column or field
-   alongside the old one, the middle rungs move readers and writers over, a later PR (often after
-   the stack merges) drops the old one. Never combine add and drop in one rung.
+1. **Dead code.** New functions, types, and tables land with nothing that references them. Nothing
+   calls them before the wiring rung. This costs nothing, and it works for most splits.
+2. **Feature flag.** The new path exists and code can reach it, but the flag is off by default. The
+   last PR in the stack changes the default. Use this when the new code replaces an existing path
+   instead of a path that sits beside the old one.
+3. **Expand / contract.** Use this for schema and API changes. The early rung adds the new column
+   or field next to the old one. The middle rungs move readers and writers to the new one. A later
+   PR drops the old one, often after the stack merges. Never combine an add and a drop in one rung.
 
-Whichever you pick, name it in the Phase 3 proposal — the reviewer needs to know why the code they
-are reading appears to be called by nothing.
+Name your choice in the Phase 3 proposal. The reviewer needs to know why nothing appears to call
+the code that they read.

@@ -7,38 +7,41 @@ description: Summarize the current session into a lean, AI-only handoff doc so t
 
 # Write Handoff
 
-A handoff doc is read by the **next AI agent**, not a human. Write it terse and
-structured for fast pickup. Its job is to let a fresh agent resume in a new
-session with minimal context — so reference everything, embed almost nothing.
+The **next AI agent** reads a handoff doc. A human does not. Write the doc
+short and structured, so the next agent starts fast. The doc lets a fresh agent
+continue the work in a new session with a small context. Therefore reference
+everything, and embed almost nothing.
 
 ## Workflow
 
-1. **Synthesize the session.** Pull the task, what's done, what's in progress,
-   and what's next straight from the conversation. Don't re-investigate the
-   codebase — the material is already in chat. If the session is too thin to
-   hand off, say so and stop.
+1. **Summarize the session.** Take the task, the finished work, the work in
+   progress, and the next steps directly from the conversation. Do not
+   investigate the codebase again. The material is already in the chat. If the
+   session holds too little content for a handoff, say so and stop.
 
-2. **Gather pointers, not content.** For each item the next agent will need,
-   capture a reference, not the thing itself:
-   - **Files:** `path/to/file.go:42` plus one line on why it matters.
-   - **Memories:** `[[memory-slug]]` from MEMORY.md or recalled this session.
-   - **Links:** URLs, issue/PR numbers, docs — with a why.
-   - **Skills:** from the available-skills list, only ones that genuinely fit
-     the next steps. Name them and say when to use each.
+2. **Collect references, not content.** For each item that the next agent
+   needs, write a reference to the item. Do not write the item itself.
+   - **Files:** `path/to/file.go:42` and one line about why the file matters.
+   - **Memories:** `[[memory-slug]]` from MEMORY.md, or a memory recalled in
+     this session.
+   - **Links:** URLs, issue numbers, PR numbers, and docs. Give a reason for
+     each one.
+   - **Skills:** only the skills from the available-skills list that truly fit
+     the next steps. Name each skill and say when to use it.
 
-3. **Draft from [TEMPLATE.md](TEMPLATE.md).** Fill the sections; omit any that
-   would be empty. Keep prose tight — this doc exists to shrink context, so a
-   bloated handoff is a failed handoff. Stamp the `Created` field with a real
-   clock time — run `date '+%Y-%m-%d %H:%M'` and use that; never write a vague
-   placeholder like "(session)".
+3. **Draft from [TEMPLATE.md](TEMPLATE.md).** Complete each section. Omit each
+   section that would be empty. Keep the prose short. The doc exists to make
+   the context smaller, so a long handoff is a failed handoff. Put a real clock
+   time in the `Created` field. Run `date '+%Y-%m-%d %H:%M'` and use the
+   result. Never write a vague placeholder like "(session)".
 
-4. **Gate — ask for additions, then confirm.** Show the draft in chat and ask
-   the user to add anything the next agent should know that isn't already
-   captured (gotchas, decisions, half-finished reasoning). Wait for their input
-   and approval before writing the file.
+4. **Gate. Ask for additions, then confirm.** Show the draft in the chat. Ask
+   the user for anything more that the next agent must know, such as traps,
+   decisions, or unfinished reasoning. Wait for the user's answer and approval
+   before you write the file.
 
-5. **Write the file.** Key the path to the git repo root, encoded the same way
-   the memory dir is (slashes → dashes):
+5. **Write the file.** Build the path from the git repo root. Encode the root
+   the same way the memory directory does, and replace each slash with a dash:
 
    ```bash
    root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
@@ -47,26 +50,29 @@ session with minimal context — so reference everything, embed almost nothing.
    file=$dir/handoff-$(date +%Y%m%d-%H%M%S).md
    ```
 
-   Write the approved draft to `$file` and report the full path. Tell the user
-   the next session picks it up by opening that file — the newest one in `$dir`
-   is always the current handoff, which is why the name is timestamped.
+   Write the approved draft to `$file`. Report the full path. Tell the user
+   that the next session opens that file to continue the work. The newest file
+   in `$dir` is always the current handoff. The name carries a timestamp for
+   this reason.
 
 ## Constraints
 
-- **Audience is an AI, not a human.** No greetings, no recap padding, no
-  praise. Dense, scannable, structured. Optimize for a cold agent picking it up
-  fast, not for human readability.
-- **Reference, never embed.** Point to files by `path:line`, memories by
-  `[[slug]]`, work by link. Do NOT paste raw code, full logs, file contents, or
-  command output unless a short snippet is the only way to convey a non-obvious
-  state — and then keep it to the few lines that matter.
-- **Only what's real.** Every `file:line`, `[[memory]]`, and skill name must
-  come from this session or be verified before the draft is shown. Don't invent
-  paths or suggest skills that don't exist in the available list.
-- **Omit empty sections.** Drop any section that would only hold filler. A lean
-  doc beats a complete-but-padded one.
-- **Don't save in the project dir.** The file always goes under
-  `~/.agent-skills/<encoded-root>/handoffs/`, never inside the repo — it must
-  not get committed.
-- **Scope ends at file creation.** Don't keep working the task after writing.
-  The handoff is the deliverable; the next session does the rest.
+- **The reader is an AI, not a human.** Write no greeting, no padded recap, and
+  no praise. Keep the doc dense, easy to scan, and structured. Write for an
+  agent that starts cold and must read fast. Do not write for a human reader.
+- **Use a reference, never an embed.** Point to a file with `path:line`, to a
+  memory with `[[slug]]`, and to other work with a link. Do NOT paste raw code,
+  full logs, file contents, or command output. A short snippet is allowed in
+  one case only. Use a snippet when nothing else can show a state that is not
+  obvious. Keep the snippet to the few lines that matter.
+- **Write only what is real.** Every `file:line`, `[[memory]]`, and skill name
+  must come from this session. If it does not, verify it before you show the
+  draft. Do not invent a path. Do not suggest a skill that is absent from the
+  available list.
+- **Omit empty sections.** Remove each section that would hold only filler. A
+  short doc is better than a complete doc with padding.
+- **Do not save the file in the project directory.** The file always goes under
+  `~/.agent-skills/<encoded-root>/handoffs/`. Never put the file inside the
+  repo. The file must not enter a commit.
+- **The work stops when the file exists.** Do not continue the task after you
+  write the file. The handoff is the result. The next session does the rest.

@@ -1,8 +1,9 @@
 # write-handoff template
 
-The skeleton the skill drafts from. Fill each section; **omit any that would be
-empty** — don't keep a heading just to write "none". Everything is a reference,
-not a dump: `path:line`, `[[memory-slug]]`, links, skill names.
+This is the skeleton that the skill drafts from. Complete each section.
+**Omit each section that would be empty.** Do not keep a heading only to write
+"none". Every entry is a reference, not a dump. Use `path:line`,
+`[[memory-slug]]`, links, and skill names.
 
 ````md
 # Handoff: <task in a few words>

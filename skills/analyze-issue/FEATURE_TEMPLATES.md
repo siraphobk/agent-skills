@@ -1,14 +1,15 @@
-# Feature Report — docs 3–4
+# Feature Report: docs 3–4
 
-Use with the shared skeleton and the reversibility/confidence scales in
-[TEMPLATES.md](TEMPLATES.md). Findings (doc 3) and recommendations (doc 4) are linked by
-**finding ID** (`F-01`, `F-02`, …).
+Use this file with the shared skeleton and the reversibility and confidence scales in
+[TEMPLATES.md](TEMPLATES.md). A **finding ID** (`F-01`, `F-02`, …) links the findings (doc 3) to
+the recommendations (doc 4).
 
-## 01-summary.md — feature bits
+## 01-summary.md: the feature parts
 
-Drop these into the shared `01-summary.md` skeleton.
+Put these into the shared `01-summary.md` skeleton.
 
-**Findings index** (Reversibility replaces Severity; `—` for an open question with no code anchor):
+**Findings index.** Reversibility replaces Severity. Use `—` for an open question with no code
+anchor.
 
 ```md
 | ID | Title | Category | Reversibility | Confidence | Location |
@@ -28,8 +29,8 @@ Drop these into the shared `01-summary.md` skeleton.
 
 ## 03-design-and-decisions.md
 
-One section per finding, ordered by reversibility (Architecture first). No implementation — only
-the design problem and the options. Recommendation lives in doc 4.
+Write one section per finding. Order the sections by reversibility, Architecture first. Give no
+implementation. Give only the design problem and the options. The recommendation lives in doc 4.
 
 ```md
 # Design & Decisions
@@ -63,8 +64,8 @@ ambiguity. Ground it in `file:line` where there is one.>
 
 ## 04-recommended-approach.md
 
-One section per finding ID, matching doc 3. The recommended option and why — **no full
-implementation**. This is the raw material `write-plan` consumes.
+Write one section per finding ID. The sections match doc 3. Give the recommended option and why.
+**Write no full implementation.** `write-plan` consumes this file as raw material.
 
 ```md
 # Recommended Approach

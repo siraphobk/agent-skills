@@ -1,6 +1,7 @@
-# Branch context — the commands
+# Branch context commands
 
-What [SKILL.md](SKILL.md) Step 1 runs to learn where it is. All read-only; run them in parallel.
+[SKILL.md](SKILL.md) Step 1 runs these commands to find the branch context. All of them are
+read-only. Run them in parallel.
 
 ## Context commands
 
@@ -24,20 +25,21 @@ git diff {base}..HEAD --stat
 git diff {base}..HEAD
 ```
 
-## Parsing the remote
+## Parse the remote
 
-Parse `{owner}` and `{repo}` from the remote URL. Both forms show up:
+Parse `{owner}` and `{repo}` from the remote URL. The URL has one of two forms:
 
 - `git@github.com:{owner}/{repo}.git`
 - `https://github.com/{owner}/{repo}.git`
 
-## Parsing the issue number
+## Parse the issue number
 
-Branch names follow `{issue_type}-{issue_number}/{description}` — e.g. `bug-42/fix_auth_crash`.
+Branch names follow the pattern `{issue_type}-{issue_number}/{description}`. One example is
+`bug-42/fix_auth_crash`.
 
 ```bash
 echo {branch} | grep -oP '(?<=-)\d+(?=/)'
 ```
 
-No match means no linked issue. Skip the PR body's "Closes" section; don't guess a number from
-the commit messages.
+No match means the branch has no linked issue. Skip the "Closes" section of the PR body. Do not
+guess a number from the commit messages.

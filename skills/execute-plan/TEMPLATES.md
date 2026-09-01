@@ -1,14 +1,14 @@
 # Deliverable Template
 
-The record [SKILL.md](SKILL.md) writes as each phase lands. Sections that stay empty at the end
-get a bare "None.", not deletion — an empty *Deviations* is itself a useful fact.
+[SKILL.md](SKILL.md) writes this record as each phase lands. A section that is still empty at the
+end gets a bare "None.". Do not delete it. An empty *Deviations* section is itself a useful fact.
 
 ## Path
 
 - **Single plan:** `<repo-root>/.agents/scratch/deliverables/<plan-file-name>.md`.
-- **Epic:** one file for the whole epic — `<repo-root>/.agents/scratch/deliverables/<epic-dir-name>.md`
-  — with every sub-plan's entries inside it. Not one file per sub-plan.
-- `mkdir -p` the directory on first write.
+- **Epic:** one file for the whole epic, `<repo-root>/.agents/scratch/deliverables/<epic-dir-name>.md`,
+  with every sub-plan's entries inside it. Do not write one file per sub-plan.
+- Run `mkdir -p` on the directory at the first write.
 
 ## Shape
 
@@ -54,8 +54,8 @@ The Verification commands and their real output. Feeds the PR test plan.
 
 ## Epic layout
 
-Same sections, one file. Prefix per-sub-plan entries with the sub-plan number so
-they stay sorted and traceable, and group the acceptance criteria under a sub-plan heading — AC
+An epic uses the same sections in one file. Prefix each sub-plan entry with the sub-plan number, so
+the entries stay sorted and traceable. Group the acceptance criteria under a sub-plan heading. AC
 numbering is local to each plan file, so bare `AC-1` lines from two sub-plans would collide:
 
 ```md
@@ -71,5 +71,5 @@ numbering is local to each plan file, so bare `AC-1` lines from two sub-plans wo
 ### [x] 02 · Phase 1 — <name>
 ```
 
-The epic's **Summary** covers the whole epic and is written after the last sub-plan; **Verification
-output** holds each sub-plan's own verification plus the epic's Global verification, labeled.
+The epic's **Summary** covers the whole epic. Write it after the last sub-plan. **Verification
+output** holds each sub-plan's own verification and the epic's Global verification. Label each one.

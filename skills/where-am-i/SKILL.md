@@ -7,42 +7,49 @@ description: Orient yourself in one session when several are open at once. Repor
 
 # Where Am I
 
-Answers the four questions a person has when they tab back into one of several
-running sessions: what was I doing, in which checkout, on which machine, and how
-much runway is left. It reads state and prints a report — it changes nothing.
+A person who returns to one of several open sessions asks four questions. What
+was I doing, in which checkout, on which machine, and how much runway is left.
+This skill answers those four questions. It reads state and prints a report. It
+changes nothing.
 
 ## Workflow
 
 1. **Pick the level.** `brief` is the default and covers the crucial facts.
-   `full` adds everything. Take it from the argument, or from wording like
-   "everything" / "the full picture". Don't ask — pick and say which you used.
+   `full` adds everything. Take the level from the argument, or from wording
+   like "everything" or "the full picture". Do not ask. Pick a level, and say
+   which one you used.
 
-2. **Probe the environment.** Run the commands in [PROBES.md](PROBES.md) — the
-   `brief` set first, and the `full` set too when that level was picked. Batch
-   them into as few calls as you can; this should feel instant. A probe that
-   fails is a field marked unavailable, never a guess and never a retry loop.
+2. **Probe the environment.** Run the commands in [PROBES.md](PROBES.md). Run
+   the `brief` set first. Run the `full` set also when you picked that level.
+   Batch the commands into as few calls as you can, so the report feels
+   instant. A probe that fails makes a field unavailable. Do not guess the
+   value, and do not retry the probe.
 
-3. **Read the agent's own state.** Context used, remaining token budget, model,
-   and quota. Context comes off the session transcript by the formula in
-   [AGENT-STRATEGIES.md](AGENT-STRATEGIES.md), which is where the per-agent file
-   locations live; quota comes from the usage snapshot in PROBES.md. Report
-   nothing neither of those nor the harness actually gave you, and when the
-   snapshot is missing or stale say the quota is unknown and name the command
-   that shows it.
+3. **Read the agent's own state.** Read the context used, the remaining token
+   budget, the model, and the quota. Get the context from the session
+   transcript with the formula in
+   [AGENT-STRATEGIES.md](AGENT-STRATEGIES.md), which also holds the per-agent
+   file locations. Get the quota from the usage snapshot in PROBES.md. Report
+   only the values that those two sources or the harness gave you. When the
+   snapshot is missing or stale, say that the quota is unknown, and name the
+   command that shows it.
 
-4. **Write the summary from the conversation, not the code.** Three sentences,
-   hard cap: what the task is, where it stands right now, what is next or
-   blocked. The material is already in the session — do not re-read the repo to
-   reconstruct it. When the session is genuinely empty (fresh start, no work
-   yet), say that in one sentence instead of padding three.
+4. **Write the summary from the conversation, not from the code.** The hard cap
+   is three sentences. Say what the task is, where it stands right now, and
+   what is next or blocked. The material is already in the session. Do not read
+   the repo again to rebuild it. When the session is genuinely empty (fresh
+   start, no work yet), say that in one sentence. Do not pad the summary to
+   three sentences.
 
 5. **Render from [TEMPLATES.md](TEMPLATES.md).** Match the shape for the level
-   you picked. Drop any line whose value is unavailable rather than printing an
-   empty field, except quota — an unknown quota is worth saying out loud.
+   you picked. Drop any line whose value is unavailable. Do not print an empty
+   field. The quota line is the exception. Print the quota even when it is
+   unknown.
 
-6. **End with one next step.** A single line naming the concrete next action, in
-   the session's own terms: the command to run, the file to open, the decision
-   waiting on the user. Never "continue the work".
+6. **End with one next step.** Write a single line that names the concrete next
+   action in the session's own terms. Give the command to run, the file to
+   open, or the decision that waits for the user. Never write "continue the
+   work".
 
 ## What each level covers
 
@@ -62,28 +69,34 @@ much runway is left. It reads state and prints a report — it changes nothing.
 
 ## Constraints
 
-- **Never invent a number.** Context, quota, ahead/behind, dirty counts and
-  timestamps all come from a command or from something the harness stated. A
-  plausible-looking figure is worse than "unavailable", because the whole point
-  of this report is deciding what to do next from it.
-- **Read-only, always.** No writes, no commits, no fetches, no branch switches.
-  Nothing in this skill may change the checkout it is describing.
-- **Three sentences means three.** The summary is the part that gets read; a
-  paragraph defeats it. Detail belongs in the fields below it.
-- **Don't re-investigate the codebase.** No searching, no reading source to work
-  out what the session was doing. If the conversation doesn't say, the summary
-  says it doesn't.
-- **Say when a field is unavailable, don't hide it.** A dropped quota line reads
-  as "quota fine". Print the field with "unknown" and the one-line reason.
-- **Stale data gets an age.** Any value read from a cached file is reported with
-  how old it is. A quota snapshot from hours ago describes an hour that is over.
-- **Chat only.** This skill writes no files, not even scratch. If the user wants
-  the state persisted for a fresh agent to pick up, that is `write-handoff`.
-- **Bound the neighbour scan.** `full` searches a fixed few levels below the
-  parent of the repo root and prunes the trees that hold no checkouts, so it
-  reaches nested worktrees without getting slow. Never walk the whole home
-  directory hunting for checkouts.
+### What you report
 
-Nothing feeds this skill; it reads live state. When the answer to "what next" is
-"I'm out of context", hand off with `write-handoff` — this report is the input a
-good handoff is written from.
+- **Never invent a number.** Context, quota, ahead/behind, dirty counts, and
+  timestamps all come from a command or from something the harness stated. A
+  plausible figure is worse than "unavailable". The reader uses this report to
+  decide what to do next.
+- **Three sentences means three.** The reader reads the summary, and a
+  paragraph defeats it. Put the detail in the fields below the summary.
+- **Say when a field is unavailable. Do not hide it.** A dropped quota line
+  reads as "quota fine". Print the field with "unknown" and the one-line
+  reason.
+- **Give stale data an age.** Report every value from a cached file with its
+  age. A quota snapshot from hours ago describes an hour that is over.
+
+### What you do
+
+- **Stay read-only, always.** Do not write, commit, fetch, or switch branches.
+  Nothing in this skill may change the checkout that it describes.
+- **Do not investigate the codebase again.** Do not search the code. Do not
+  read the source to find what the session did. If the conversation does not
+  say, the summary says that it does not.
+- **Print to chat only.** This skill writes no files, not even scratch files.
+  Use `write-handoff` when the user wants the state saved for a fresh agent.
+- **Bound the neighbour scan.** `full` searches a fixed few levels below the
+  parent of the repo root. It prunes the trees that hold no checkouts, so it
+  reaches nested worktrees and stays fast. Never walk the whole home directory
+  to find checkouts.
+
+Nothing feeds this skill. It reads live state. Use `write-handoff` when the
+answer to "what next" is "I'm out of context". A good handoff starts from this
+report.

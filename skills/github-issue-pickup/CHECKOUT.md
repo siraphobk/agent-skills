@@ -1,7 +1,7 @@
 # Checkout mechanics
 
-How [SKILL.md](SKILL.md) Step 7 puts you on the new branch. Two shapes — the user picked one at
-Step 6. Find the project root first:
+This file shows how Step 7 of [SKILL.md](SKILL.md) moves you to the new branch. There are
+two shapes. The user selected one of them at Step 6. Find the project root first:
 
 ```bash
 git rev-parse --show-toplevel
@@ -9,9 +9,10 @@ git rev-parse --show-toplevel
 
 ## Worktree
 
-Follow the worktree setup convention in [[coding/worktree-setup]] — the `.worktrees/` ignore
-rule, the flattened dir name, and the `core.bare` check that runs right after the add. Here the
-add creates the branch too, so there's no separate fetch:
+Follow the worktree setup convention in [[coding/worktree-setup]]. It has three parts: the
+`.worktrees/` ignore rule, the flattened dir name, and the `core.bare` check. The
+`core.bare` check runs immediately after the add. Here the add also creates the branch, so
+a separate fetch is not necessary:
 
 ```bash
 git worktree add {project_root}/.worktrees/{prefix}-{number}--{short_description} -b {prefix}-{number}/{short_description}
@@ -25,4 +26,5 @@ Report the worktree path so the user can `cd` into it.
 git checkout -b {prefix}-{number}/{short_description}
 ```
 
-No ignore rules, no `core.bare` risk. The working directory is now on the new branch.
+There are no ignore rules and no `core.bare` risk. The working directory is now on the new
+branch.

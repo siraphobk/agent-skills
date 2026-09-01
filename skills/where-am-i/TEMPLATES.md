@@ -1,8 +1,9 @@
 # Output shapes
 
-Both levels open the same way: one header line you can read at a glance, then
-the three-sentence summary, then fields. The header exists so a person scanning
-three terminal tabs can tell them apart without reading further.
+Both levels start the same way. First comes one header line that you can read at
+a glance. Then comes the three-sentence summary, then the fields. The header
+lets a person with three terminal tabs open tell them apart without more
+reading.
 
 ## brief
 
@@ -22,14 +23,14 @@ that read inside and see if the test goes green.
 → Next: move the reservation read inside the transaction in `internal/order/reserve.go:88`, then rerun `go test ./internal/order/...`
 ````
 
-Drop a field whose value is unavailable — except quota, which prints
-`unknown — run /usage`. Only flag the worktree when this checkout is a linked
-one; in a plain clone the `where` line just names the branch.
+Drop a field whose value is unavailable. The quota field is the exception, and
+it prints `unknown — run /usage`. Flag the worktree only when this checkout is a
+linked worktree. In a plain clone, the `where` line names the branch alone.
 
 ## full
 
-Same header, same summary, then the same fields expanded, with three sections
-added underneath.
+The full level uses the same header and the same summary. It expands the same
+fields, and it adds three sections below them.
 
 ````
 **dc-commerce** · `bug-482/stock-oversell` · fritz-desktop
@@ -67,24 +68,25 @@ that read inside and see if the test goes green.
 → Next: move the reservation read inside the transaction in `internal/order/reserve.go:88`, then rerun `go test ./internal/order/...`
 ````
 
-The neighbour table only lists checkouts that are dirty or ahead. A clean one is
-not a session anybody left open, and listing it hides the three that are. A row
-with no branch says `detached at <short commit>` and carries no ahead/behind —
-writing `HEAD` there reads as a branch by that name.
+The neighbour table lists only checkouts that are dirty or ahead. A clean
+checkout is not a session that anybody left open. A row for it hides the three
+checkouts that are. A row with no branch says `detached at <short commit>` and
+carries no ahead/behind count. The string `HEAD` in that place reads as a branch
+with that name.
 
-## The summary — too vague vs. right
+## The summary: too vague, then right
 
 The three sentences carry the whole report. Each one has a job: **what the task
 is**, **where it stands**, **what is next or blocked**. A summary that could
-describe any session on any day has failed, even though it is short and true.
+describe any session on any day fails, even when it is short and true.
 
 **Too vague:**
 
 > Working on a bug in the order service. Made some progress investigating the
 > issue. Will continue looking into it.
 
-Nothing here survives a tab switch — no symptom, no finding, no next action. The
-reader still has to scroll the session to learn anything.
+Nothing here survives a tab switch. There is no symptom, no finding, and no next
+action. The reader must still scroll the session to learn anything.
 
 **Right:**
 
@@ -93,10 +95,11 @@ reader still has to scroll the session to learn anything.
 > like the reservation read happening outside the transaction. Next is to move
 > that read inside and see if the test goes green.
 
-Same length. Names the symptom, the state of the evidence, and the exact next
-move — which is what makes it worth reading at all.
+This summary is the same length. It names the symptom, the state of the
+evidence, and the exact next move. Those three facts are the reason to read it
+at all.
 
 **When the session has no work yet,** say so in one sentence and stop. Do not
-stretch a cold start into three:
+stretch a cold start into three sentences:
 
 > Fresh session, nothing done yet — the checkout is clean and on `main`.
