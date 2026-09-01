@@ -29,7 +29,7 @@ excluded, so the coverage is auditable.
 | 5 | Security and trust | authz/authn gaps, untrusted input that reaches a sink (injection, path, deserialization), secret handling, over-broad permissions, sensitive data in logs |
 | 6 | Performance and scale | N+1 queries, unbounded result sets, memory growth, missing indexes, hot-path allocations, synchronous work that should be async, cache stampede |
 | 7 | Boundaries and contracts | API and schema backward compatibility, breaking changes to callers, hidden coupling, leaked internals, inconsistent error contracts across a boundary |
-| 8 | Tests and observability | untested branches and edge cases, no regression test for the issue's bug, missing or unstructured logs, missing metrics or traces on the new path |
+| 8 | Tests and observability | untested branches and edge cases, no regression test for the issue's bug, missing structured logs, missing metrics or traces on the new path |
 
 Map the hits of each lens to findings. Tag each finding with the category **Gap**, **Bug**, or
 **Risk**.
