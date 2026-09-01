@@ -1,7 +1,7 @@
 {
   "name": "agent-skills",
   "description": "Planning, diagnosis, GitHub and review workflows for Claude Code and Cursor",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "author": {
     "name": "siraphobk"
   },
