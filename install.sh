@@ -29,10 +29,12 @@ usage() {
 		  --claude          \${CLAUDE_CONFIG_DIR:-\$HOME/.claude}/skills/
 		  --cursor          \$HOME/.cursor/skills/
 		  --agents          \$HOME/.agents/skills/
+		  --omp             \$HOME/.omp/agent/skills/
 
 		Options:
 		  --only NAMES      comma-separated skills to act on
 		  --exclude NAMES   comma-separated skills to skip
+		  --interactive     choose skills from an interactive list
 		  --copy            real copies instead of symlinks
 		  --dry-run         print the plan, touch nothing
 		  --force           replace an entry this script does not own
@@ -63,6 +65,7 @@ exclude=""
 mode="install"
 copy=0
 dry_run=0
+interactive=0
 force=0
 
 [ "$#" -eq 0 ] && {
@@ -75,6 +78,7 @@ while [ "$#" -gt 0 ]; do
 	--claude) targets="$targets claude" ;;
 	--cursor) targets="$targets cursor" ;;
 	--agents) targets="$targets agents" ;;
+	--omp) targets="$targets omp" ;;
 	--only)
 		[ "$#" -ge 2 ] || die "--only needs a comma-separated list"
 		only="$2"
@@ -86,6 +90,7 @@ while [ "$#" -gt 0 ]; do
 		shift
 		;;
 	--copy) copy=1 ;;
+	--interactive) interactive=1 ;;
 	--dry-run) dry_run=1 ;;
 	--force) force=1 ;;
 	--list) mode="list" ;;
@@ -113,6 +118,7 @@ target_dir() {
 	claude) printf '%s/skills\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}" ;;
 	cursor) printf '%s/.cursor/skills\n' "$HOME" ;;
 	agents) printf '%s/.agents/skills\n' "$HOME" ;;
+	omp) printf '%s/.omp/agent/skills\n' "$HOME" ;;
 	esac
 }
 
@@ -155,6 +161,42 @@ else
 		done
 	fi
 fi
+
+[ "$interactive" -eq 0 ] || [ -z "$only$exclude" ] || die "--interactive cannot be combined with --only or --exclude"
+
+choose_interactively() {
+	index=0
+	printf 'Available skills:\n' >&2
+	for n in $known; do
+		index=$((index + 1))
+		printf '  %s) %s\n' "$index" "$n" >&2
+	done
+
+	printf 'Select skill numbers, separated by commas: ' >&2
+	IFS= read -r choices || die "could not read interactive skill selection"
+	[ -n "$choices" ] || die "interactive skill selection is empty"
+
+	selected=""
+	for choice in $(split_names "$choices"); do
+		case "$choice" in
+		'' | *[!0-9]*) die "'$choice' is not a skill number" ;;
+		esac
+
+		index=0
+		chosen=""
+		for n in $known; do
+			index=$((index + 1))
+			if [ "$index" -eq "$choice" ]; then
+				chosen="$n"
+				break
+			fi
+		done
+		[ -n "$chosen" ] || die "'$choice' is not a listed skill"
+		in_list "$chosen" "$selected" || selected="$selected $chosen"
+	done
+}
+
+[ "$interactive" -eq 0 ] || choose_interactively
 
 # --- ownership -------------------------------------------------------------
 
@@ -370,7 +412,7 @@ list)
 doctor)
 	# An audit reads nothing but the filesystem, so it may run with no target: check
 	# every place we know how to install to, skipping the ones that do not exist.
-	[ -z "$targets" ] && targets="claude cursor agents"
+	[ -z "$targets" ] && targets="claude cursor agents omp"
 	rc=0
 	for t in $targets; do
 		do_doctor "$t" || rc=1
@@ -379,7 +421,7 @@ doctor)
 	;;
 esac
 
-[ -n "$targets" ] || die "no target given — name at least one of --claude, --cursor, --agents"
+[ -n "$targets" ] || die "no target given — name at least one of --claude, --cursor, --agents, or --omp"
 
 rc=0
 for t in $targets; do

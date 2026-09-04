@@ -66,14 +66,15 @@ If a marketplace refresh ever fails and drops the entry, set
 `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1` so the failure does not take your
 installed plugins with it.
 
-## Install — Cursor, or anything else
+## Install — Cursor, OMP, or anything else
 
-Cursor has no plugin registry, so the clone is the delivery:
+Cursor and OMP have no plugin registry, so the clone is the delivery:
 
 ```sh
 git clone git@github.com:siraphobk/agent-skills.git
 cd agent-skills
 ./install.sh --cursor
+./install.sh --omp
 ```
 
 Symlinks by default, so `git pull` here is the update mechanism.
@@ -81,7 +82,8 @@ Symlinks by default, so `git pull` here is the update mechanism.
 ```sh
 ./install.sh --list                          # skills in this repo, with descriptions
 ./install.sh --cursor --only diagnose,write-plan
-./install.sh --claude --exclude self-improve
+./install.sh --omp --exclude self-improve
+./install.sh --omp --interactive             # select skills by number
 ./install.sh --cursor --copy                 # real copies instead of links
 ./install.sh --claude --dry-run              # print the plan, touch nothing
 ./install.sh --doctor                        # audit what is installed
@@ -93,6 +95,7 @@ Symlinks by default, so `git pull` here is the update mechanism.
 | `--claude` | `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/` |
 | `--cursor` | `$HOME/.cursor/skills/` |
 | `--agents` | `$HOME/.agents/skills/` (tool-neutral; Cursor scans it too) |
+| `--omp` | `$HOME/.omp/agent/skills/` |
 
 **No target flag means no writes.** The script prints usage and exits non-zero rather
 than guessing where your config lives.

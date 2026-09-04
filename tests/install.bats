@@ -97,6 +97,38 @@ setup() {
 	[ -L "$HOME/.agents/skills/$(first_skill)" ]
 }
 
+@test "--omp links into ~/.omp/agent/skills" {
+	run "$INSTALL" --omp
+	[ "$status" -eq 0 ]
+	[ -L "$HOME/.omp/agent/skills/$(first_skill)" ]
+}
+
+@test "--omp --only installs exactly the named skills" {
+	a="$(first_skill)"; b="$(second_skill)"
+	run "$INSTALL" --omp --only "$a,$b"
+	[ "$status" -eq 0 ]
+	[ -L "$HOME/.omp/agent/skills/$a" ]
+	[ -L "$HOME/.omp/agent/skills/$b" ]
+	[ "$(find "$HOME/.omp/agent/skills" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')" = "2" ]
+}
+
+@test "--omp --exclude skips the named skill" {
+	a="$(first_skill)"
+	run "$INSTALL" --omp --exclude "$a"
+	[ "$status" -eq 0 ]
+	[ ! -e "$HOME/.omp/agent/skills/$a" ]
+	[ -L "$HOME/.omp/agent/skills/$(second_skill)" ]
+}
+
+@test "--omp --interactive installs the selected skills" {
+	a="$(first_skill)"; b="$(second_skill)"
+	run bash -c "printf '1,2\n' | '$INSTALL' --omp --interactive"
+	[ "$status" -eq 0 ]
+	[ -L "$HOME/.omp/agent/skills/$a" ]
+	[ -L "$HOME/.omp/agent/skills/$b" ]
+	[ "$(find "$HOME/.omp/agent/skills" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')" = "2" ]
+}
+
 @test "two targets in one run install to both" {
 	run "$INSTALL" --claude --cursor
 	[ "$status" -eq 0 ]
@@ -202,6 +234,16 @@ setup() {
 	[ "$status" -eq 0 ]
 	run "$INSTALL" --doctor --cursor
 	[ "$status" -eq 0 ]
+	[[ "$output" == *"ok"* ]]
+	[[ "$output" == *"$(first_skill)"* ]]
+}
+
+@test "--doctor --omp reports installed skills as healthy" {
+	run "$INSTALL" --omp
+	[ "$status" -eq 0 ]
+	run "$INSTALL" --doctor --omp
+	[ "$status" -eq 0 ]
+	[[ "$output" == *".omp/agent/skills"* ]]
 	[[ "$output" == *"ok"* ]]
 	[[ "$output" == *"$(first_skill)"* ]]
 }
