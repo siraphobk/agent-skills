@@ -34,22 +34,65 @@ Ask the user: **current dir** or **worktree**.
 
 ## Worktree
 
-Follow the worktree setup convention in [[coding/worktree-setup]]. It gives the `.worktrees/`
-ignore rule, the flattened dir name, and the `core.bare` check that runs directly after the add.
-Then do the PR-specific part. Fetch the head into a local branch. Add the worktree from that
-branch.
+1. Check that this is a non-bare working-tree clone before setup:
 
-```
-git fetch origin pull/<n>/head:pr-<n>
-git worktree add .worktrees/pr-<n>--<short-desc> pr-<n>
-```
+   ```
+   project_root="$(git rev-parse --show-toplevel)" || {
+     printf '%s\n' 'Worktree mode requires a non-bare clone.'
+     exit 1
+   }
+   if [ "$(git rev-parse --is-bare-repository)" = true ]; then
+     printf '%s\n' 'Worktree mode requires a non-bare clone.'
+     exit 1
+   fi
+   ```
 
-`<short-desc>` is a kebab-case slug from the PR title. Run every later step from inside the
-worktree dir.
+   If either command cannot establish a non-bare working-tree root, stop. Do not create a partial
+   worktree.
 
-**When the review is done:** leave the worktree on disk by default. A review often has follow-up
-work. Tell the user the path, and print the teardown commands from the convention. Do not remove
-the worktree on your own.
+2. Set the one review path. `<short-desc>` is a kebab-case slug from the PR title:
+
+   ```
+   worktree_path="$project_root/.worktrees/pr-<n>--<short-desc>"
+   ```
+
+3. Before creation, check the path and inspect registered worktrees:
+
+   ```
+   if [ -e "$worktree_path" ] || [ -L "$worktree_path" ]; then
+     printf 'Review worktree already exists: %s\n' "$worktree_path"
+     exit 1
+   fi
+   git worktree list --porcelain
+   ```
+
+   If the output contains `worktree <worktree-path>`, stop and report that path. Do not reuse,
+   overwrite, remove, or prune a prior review worktree.
+
+4. Keep the main checkout clean without changing tracked files:
+
+   ```
+   exclude_path="$(git rev-parse --git-path info/exclude)"
+   if ! git check-ignore -q --no-index .worktrees/; then
+     if ! test -f "$exclude_path" ||
+       ! grep -Fxq '/.worktrees/' "$exclude_path"; then
+       printf '/.worktrees/\n' >> "$exclude_path"
+     fi
+   fi
+   ```
+
+5. Fetch the PR head without creating a local branch, then add a detached worktree:
+
+   ```
+   git fetch origin pull/<n>/head
+   git worktree add --detach "$worktree_path" FETCH_HEAD
+   ```
+
+Run every later local command from inside `$worktree_path`.
+
+**When the review is done:** leave the worktree in place. Report its exact path and print
+`git worktree remove <worktree-path>` as the manual teardown command. Do not remove the worktree
+or run `git worktree prune` automatically.
 
 ## Read-only fallback (mode C)
 

@@ -98,9 +98,6 @@ blast-radius-first flow lives in [BIG_PR.md](BIG_PR.md). That flow has four part
    `path:range` anchors.
 4. Add a conformance table when a spec or ADR applies. That table can re-rank severity.
 
-[BIG_PR.md](BIG_PR.md) also offers an optional multi-agent fan-out as an independent second
-opinion. **The verify gate there is mandatory.** The fan-out produces convincing false positives.
-Never ship a candidate that you did not confirm against the code yourself.
 
 Rank every finding by this **value hierarchy**. A lower tier never beats a higher tier.
 
@@ -122,13 +119,10 @@ Rank every finding by this **value hierarchy**. A lower tier never beats a highe
 security problem as a correctness and safety bug. Grade it 🔴 Blocker wherever it sits in the
 hierarchy.
 
-**A migration needs a specialist.** Migration files are `migrations/`, `*.sql`, and Go or Rust
-files that change the schema. If the diff touches one, report it at the Ready gate and **offer**
-the `migration-safety` agent. That agent grades five things: lock acquisition on big tables,
-deploy order, rollback viability, data-loss risk, and index strategy. It returns a go or no-go.
-You need the explicit go of the user before you spawn it (`rules/spawning-subagents.md`). If the
-user declines, review the migration yourself against those same five headings. A migration
-carries the largest blast radius in a PR. Never accept one after a skim only.
+**Migration changes require a full review.** Migration files are `migrations/`, `*.sql`, and Go
+or Rust files that change the schema. If the diff touches one, report it at the Ready gate and
+review it against these five headings: lock acquisition on large tables, deployment order,
+rollback viability, data-loss risk, and index strategy. Never accept one after a skim only.
 
 ## Step 6: Deliver findings
 
@@ -156,6 +150,3 @@ scroll away.
 
 **Never use `APPROVE` on your own.** That click belongs to the user. `COMMENT` is the default
 event. Use `REQUEST_CHANGES` only when there is at least 1 Blocker **and** the user agrees.
-
-> The `/code-review` skill of the repo is an option for a fast, automatic diff pass instead of
-> this step-by-step flow. Mention that skill. Do not transfer the work to it on your own.

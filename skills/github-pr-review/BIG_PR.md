@@ -107,28 +107,6 @@ them before you rank severity. It is the difference between a nit and an outage.
 4. **Ask whether a paired PR exists.** If it does exist, review both PRs and state the merge
    order in the verdict. If it does not exist, that absence *is* the finding.
 
-## Optional: multi-agent fan-out (independent second opinion)
-
-For a big or high-risk PR, you *may* run the `/code-review` finder angles of the repo. Run them
-as **parallel subagents** over the diff. Do this only after your own chunked pass. The angles are
-line-by-line, removed-behavior, cross-file tracer, reuse, simplification, efficiency, and
-altitude. Treat the fan-out as a recall booster and a false-positive stress test. It is **not**
-the primary review.
-
-**Hard rule: every candidate passes a verify gate before it reaches the report.** The fan-out
-produces *convincing* false positives. In practice it reported a non-existent "missed
-invalidation", because it trusted a misleadingly-named variable. It also reported a phantom
-cross-tenant bug from an unchecked RLS assumption. For each alarming candidate, read the actual
-code. Confirm or refute the candidate yourself, and quote the line that settles it. Only
-confirmed or plausible findings ship.
-
-Weigh these caveats before you spawn the agents:
-- The fan-out is token-heavy. Each angle re-derives context you already hold. Do not use it on a
-  small PR. Do not spawn agents until the user agrees.
-- The fan-out mostly **corroborates** a careful manual pass. The unique new findings tend to be
-  nits.
-- Record the refuted candidates too. A note such as "verified X is *not* a bug, because <line>"
-  is valuable. It stops the same false alarm next time.
 
 ## How to post big-PR findings
 
