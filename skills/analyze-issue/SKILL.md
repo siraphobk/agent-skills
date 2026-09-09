@@ -5,9 +5,9 @@ description: >
   Pre-implementation analysis of the code tied to an issue, for two kinds. Bug/investigation:
   explore the current state, find gaps, bugs, and risks, and suggest a fix approach for each.
   Feature: survey where the feature plugs in, the patterns to follow, the design decisions,
-  integration points, and risks. It writes no code. In default/deep modes it writes a 4-file report
-  under .agents/scratch/issue-analysis/ and fans out lens-based subagents on a large surface; quick
-  mode answers in chat only. Use before starting work on an issue — when the user says "analyze this
+  integration points, and risks. It writes no code. In default/deep modes it writes one compact
+  report under .agents/scratch/issue-analysis/ and fans out lens-based subagents on a large surface;
+  quick mode answers in chat only. Use before starting work on an issue — when the user says "analyze this
   issue", "explore the codebase for this issue", "assess the current state of <X>", "what gaps/risks
   exist for issue <N>", "how should I build this feature", or wants a pre-change survey. NOT for
   diagnosing a single reproducible bug (use diagnose) or reviewing a diff / branch / PR (use
@@ -23,7 +23,7 @@ mode the result is a chat answer instead. The result is **not** code changes. **
 anything.** This skill stops at analysis.
 
 The skill handles **two issue kinds**. Step 0 sets the kind. The process is the same for both kinds.
-Only the lens set, the finding categories, and the report's docs 3–4 change.
+Only the lens set, finding categories, ordering value, and finding sections change.
 
 - **bug / investigation:** find gaps, bugs, and risks in existing code. Suggest a fix approach.
 - **feature:** survey where a new feature connects to the code. Report the decisions, the
@@ -31,12 +31,9 @@ Only the lens set, the finding categories, and the report's docs 3–4 change.
 
 ## When to use this skill and when not to
 
-- **Use this skill** for a pre-change survey of the existing code tied to an issue. Both kinds
-  apply.
-- **Use `diagnose`** for one known, reproducible bug or performance regression. That skill
-  reproduces the bug and fixes it.
-- **Use `code-review` or `github-pr-review`** to review a diff, a branch, or a PR. Those skills read
-  changed code. This skill reads the existing code that an issue identifies.
+- **Use this skill** for a pre-change survey of existing code tied to an issue.
+- **Use `diagnose`** for one known, reproducible bug or performance regression.
+- **Use `code-review` or `github-pr-review`** for a diff, branch, or PR.
 
 ## Mode and kind (arguments)
 
@@ -88,9 +85,9 @@ file it says what the file does and why the file is relevant.
 
 Follow the **subagent contract and the per-lens model guidance in [CHECKLIST.md](CHECKLIST.md)**.
 Pass each agent the issue context, the surface map, and its lens. Pass the area as well in a matrix.
-Each agent returns concise findings, in the [TEMPLATES.md](TEMPLATES.md) format. Launch independent
-subagents in the same batch. **You** then dedupe the findings. **You normalize severity (bug) or
-reversibility (feature) across agents.** Then you assemble the report. See Steps 4–5.
+Each agent returns concise material for one report, in the [TEMPLATES.md](TEMPLATES.md) format.
+Launch independent subagents in the same batch. **You** dedupe the findings, normalize severity
+(bug) or reversibility (feature) across agents, and assemble the report. See Steps 4–5.
 
 **Gate 2 fires here** (large scope, and always `deep`). Present the fan-out plan in the format
 [GATES.md](GATES.md) shows. Wait for a go before you start any subagent.
@@ -122,37 +119,29 @@ You reconcile duplicates and conflicts.
 recommendation per finding inline. Write no files. Offer a handoff to `write-plan` if the user wants
 the answer saved.
 
-**`default` and `deep` modes:** write the report. Assemble the 4 files by **editing the findings the
+**`default` and `deep` modes:** write one compact report. Assemble it by **editing the findings the
 subagents returned**. Do not re-read the code you already scanned.
 
-**Gate 3 fires here** (large scope, and always `deep`). See [GATES.md](GATES.md). A small scope goes
-straight to the write step.
+**Gate 3 fires here** (large scope, and always `deep`). See [GATES.md](GATES.md). Present its table
+before writing the file. A small scope goes straight to the write step.
 
-Create `.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/` with exactly **four** files.
-Docs 1–2 are shared. Docs 3–4 use the variant for the issue's kind. The shared skeleton and the
-ordering scales are in [TEMPLATES.md](TEMPLATES.md). Docs 3–4 come from the kind's file, either
-[BUG_TEMPLATES.md](BUG_TEMPLATES.md) or [FEATURE_TEMPLATES.md](FEATURE_TEMPLATES.md).
+Create `.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/report.md`. The complete skeleton,
+kind-specific finding sections, and ordering scales are in [TEMPLATES.md](TEMPLATES.md).
 
-Findings (doc 3) and recommendations (doc 4) stay apart. A **finding ID** (`F-01`, `F-02`, …) links
-them, so each finding can be explored later on its own. Then show the findings table and the report
-path in chat.
+Keep each finding's evidence and recommendation together in its `F-NN` section. Then show the
+findings table and the exact report path in chat.
 
 ## Notes
 
-- **The ordering scale and the field definitions** live in [TEMPLATES.md](TEMPLATES.md). Bug
-  findings are ordered by severity, and feature findings by reversibility. The orchestrator owns the
-  final scale. Normalize the provisional values the subagents return, so a value means the same
-  thing across the whole report.
-- **No findings is a valid result.** Say so plainly. Do not invent low-value findings.
-- **You own the final dedupe and merge with a fan-out.** Subagents detect and report. You reconcile
-  and write.
+- **Ordering:** use [TEMPLATES.md](TEMPLATES.md). Normalize provisional values across the report.
+  Order bug findings by severity and feature findings by reversibility.
+- **No findings is valid.** Say so plainly. Do not invent low-value findings.
+- **Fan-out ownership:** subagents report material. You dedupe, reconcile, and write.
 - **Handoff:** a finding may be a reproducible bug the user wants fixed *now*. Then hand it to the
   `diagnose` skill, which builds a repro loop and fixes one bug. This skill stays at analysis.
-- **Next step:** recommend the `write-plan` skill after you deliver the report or the quick-mode
-  answer. **Give `write-plan` the report directory. Name the findings (`F-NN`) the plan should
-  address.** `write-plan` reads doc 4 as the plan's raw material. Doc 4 is
-  `04-improvement-suggestions.md` for a bug and `04-recommended-approach.md` for a feature. It seeds
-  the **Now** lines of the Approach section from `02-current-state.md`. It reuses the scope estimate
-  in `01-summary.md` for its
-  single-plan-vs-epic call. `execute-plan` then runs the plan gate by gate. The full chain is
-  **analyze-issue → write-plan → execute-plan**. Recommend it. Do not invoke it automatically.
+- **Next step:** recommend the `write-plan` skill after you deliver the report or quick-mode answer.
+  **Give `write-plan` the exact `report.md` path and name the findings (`F-NN`) the plan should
+  address.** `write-plan` uses each selected finding's recommendation as raw material, `## Current
+  state` for the **Now** lines, and the report scope or areas for its single-plan-vs-epic decision.
+  `execute-plan` then runs the plan gate by gate. The full chain is **analyze-issue → write-plan →
+  execute-plan**. Recommend it. Do not invoke it automatically.

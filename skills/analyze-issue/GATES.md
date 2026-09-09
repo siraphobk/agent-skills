@@ -20,8 +20,8 @@ Ask about an unrecognized word. Do not guess.
 | Mode | When | Behavior |
 |------|------|----------|
 | `quick` | you want a fast read | Single pass. **No subagents.** Only the lenses **most relevant to the issue**, named at the start. **All gates skipped.** **Chat only, no files.** Offer a `write-plan` handoff if the user wants the answer saved. |
-| `default` *(or none)* | normal use | **Scope-driven.** A small scope runs a single pass. A large scope uses lens fan-out. Runs all **applicable** lenses, and prunes the ones that clearly do not apply. Gate 1 always fires. Gates 2 and 3 fire on a large scope only. Writes the 4-file report. |
-| `deep` | high stakes, maximum coverage | **Full lens fan-out**, every lens, even the marginal ones. Escalates to a **matrix** (one subagent per area and lens pair) only when there is more than one distinct area. Gates 1, 2, and 3 all fire. Writes the 4-file report. |
+| `default` *(or none)* | normal use | **Scope-driven.** A small scope runs a single pass. A large scope uses lens fan-out. Runs all **applicable** lenses, and prunes the ones that clearly do not apply. Gate 1 always fires. Gates 2 and 3 fire on a large scope only. Writes one compact report. |
+| `deep` | high stakes, maximum coverage | **Full lens fan-out**, every lens, even the marginal ones. Escalates to a **matrix** (one subagent per area and lens pair) only when there is more than one distinct area. Gates 1, 2, and 3 all fire. Writes one compact report. |
 
 The mode table sets the depth for either kind. A `feature` analysis still runs `quick`, `default`,
 or `deep` the same way. It only uses the feature lenses and the feature report variant.
@@ -44,8 +44,8 @@ Gates control **agent and write spend**. They fire by mode and scope, as below.
   plan and **wait for a go** before you start any subagent. This is the main token gate. The user
   can trim lenses, drop to a single pass, cap the subagent count, or change the model.
 - **Gate 3, triage.** It fires on a large scope, and always in `deep`. Show the compact findings
-  table (ID, category, severity, location) before you write the full report. Let the user drop the
-  noise and the low-severity items.
+  table before you write `report.md`. Include ID, category, severity or reversibility, confidence,
+  and location. Let the user drop noise and low-priority items.
 
 The steps in [SKILL.md](SKILL.md) only mark *where* a gate fires. This section is the single source
 for what each gate presents and who can change what.

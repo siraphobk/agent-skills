@@ -14,8 +14,8 @@ the complete structure from here.
 One paragraph. State the problem this plan addresses, and what "done" looks
 like. Frame it around the change or the outcome, not around a question under
 investigation. When the plan comes from an analyze-issue report, name the
-finding IDs it addresses (e.g. "fixes F-01, F-03, F-07"). Link the report
-directory as well.
+finding IDs it addresses (e.g. "fixes F-01, F-03, F-07"). Link the exact
+`report.md` file as well.
 
 ## Non-goals
 
@@ -49,8 +49,8 @@ phase can then point at that block instead of a repeat of it. Each block pairs
 the state of the code now with what changes. The reader then sees the problem and the fix
 together, with no jump between sections. Put the file paths in a code block at
 the top of the block. Keep the prose plain, with as little inline code as you
-can. Take the first content for the **Now** lines from `02-current-state.md` in
-the report, when one exists.
+can. Take the first content for the **Now** lines from the report's
+`## Current state` section, when one exists.
 
 **C-1 — <short label>**
 
@@ -237,7 +237,7 @@ that run.
 Stripe retries webhooks, so a flaky handler can charge a customer's wallet
 twice. Done means a redelivered event with the same idempotency key is a no-op.
 A regression test proves it. Fixes F-02 from
-`.agents/scratch/issue-analysis/2026-06-20-webhook-dupes/`.
+`.agents/scratch/issue-analysis/2026-06-20-webhook-dupes/report.md`.
 
 ## Non-goals
 

@@ -1,129 +1,140 @@
-# Report Templates: shared ground
+# Report Template
 
-The report is a directory with exactly **four** files. Findings live in doc 3. Recommendations live
-in doc 4. A **finding ID** (`F-01`, `F-02`, …) links the two, so each finding can be explored later
-on its own.
+Default and deep analyses write one file:
+`.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/report.md`.
 
-Docs **01–02 are shared**, and the skeleton is below. Docs **03–04 differ by kind**. Pick the kind
-in Step 0 of [SKILL.md](SKILL.md), then follow that kind's file:
-
-- bug / investigation → [BUG_TEMPLATES.md](BUG_TEMPLATES.md)
-- feature → [FEATURE_TEMPLATES.md](FEATURE_TEMPLATES.md)
-
-Each kind file also gives two things for that kind: the **Findings index columns** and the
-**Documents block** to put into `01-summary.md`.
-
-**Bug / investigation report:**
-
-```
-.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/
-├── 01-summary.md
-├── 02-current-state.md
-├── 03-gaps-bugs-risks.md
-└── 04-improvement-suggestions.md
-```
-
-**Feature report:**
-
-```
-.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/
-├── 01-summary.md
-├── 02-current-state.md
-├── 03-design-and-decisions.md
-└── 04-recommended-approach.md
-```
+Use the skeleton below for both issue kinds. Keep evidence and the recommendation in the same
+finding section. Write no full implementation.
 
 ## Finding categories
 
-**Bug kind.** Search by **failure class**, then categorize each finding:
+**Bug / investigation**
 
-- **Gap:** missing handling, an unimplemented requirement, absent validation, an untested edge case.
-- **Bug:** incorrect logic, a broken invariant, a race, an off-by-one, wrong error handling.
-- **Risk:** a perf cliff, a security hole, a data-integrity hazard, hidden coupling, a scalability
-  limit.
+- **Gap:** missing handling, an unimplemented requirement, absent validation, or an untested edge.
+- **Bug:** incorrect logic, a broken invariant, a race, an off-by-one, or wrong error handling.
+- **Risk:** a performance cliff, security hole, data-integrity hazard, hidden coupling, or scale limit.
 
-**Feature kind.** Survey by **readiness to build**, then categorize each finding:
+**Feature**
 
 - **Decision:** a design choice with options and a recommendation.
-- **Integration point:** a specific place where code must change or hook in.
-- **Risk / Unknown:** a hazard, a dependency, or something that needs a spike.
+- **Integration point:** a specific place where code must change or connect.
+- **Risk-Unknown:** a hazard, dependency, or subject that needs a spike.
 - **Open question:** a requirement ambiguity to resolve before coding.
 
-## Severity scale (bug / investigation)
+## Ordering scales
 
-- **Critical:** data loss, a security breach, or a correctness failure on a common path. Fix it
-  before you ship.
+Order bug findings by **Severity**: Critical, High, Medium, then Low. Break ties by category:
+Bug, Risk, then Gap.
+
+- **Critical:** data loss, a security breach, or a common-path correctness failure. Fix before release.
 - **High:** wrong behavior or a serious risk on a real path. The code ships broken without the fix.
-- **Medium:** an edge-case bug, a notable risk, or a gap that bites under specific conditions.
-- **Low:** a minor gap, cleanup, or hardening. It is worth a note, but it does not block.
+- **Medium:** an edge-case bug, notable risk, or gap that fails under specific conditions.
+- **Low:** a minor gap or hardening item that does not block release.
 
-Order the findings by severity. Break a tie by category, in the order **Bug → Risk → Gap**.
+Order feature findings by **Reversibility**: Architecture, Module-shape, then Local. Break ties by
+category: Decision, Integration point, Risk-Unknown, then Open question.
 
-## Reversibility scale (feature)
+- **Architecture:** data model, public API, service boundary, or dependency lock-in. It is hard to undo.
+- **Module-shape:** internal type, endpoint, helper, folder layout, or private signature.
+- **Local:** naming, a single-file edit, or another internal detail.
 
-Feature findings are not graded by how much code they touch. They are graded by
-**cost-to-reverse**. That scale maps onto the planning tiers, so the report feeds `write-plan`
-directly.
+**Confidence** has three values for both kinds. High means verified in code. Medium means likely,
+with some inference. Low means suspected and needs checking. For a feature, it measures confidence
+in the existing-code claim.
 
-- **Architecture:** the data model, a public API, a service boundary, dependency lock-in. It is hard
-  to undo. Resolve it and grill it before any code.
-- **Module-shape:** a new struct, endpoint, or internal helper, the folder layout, a private
-  signature. One recommendation plus a one-line alternative is enough.
-- **Local:** naming, a single-file edit, an internal detail. Decide it in passing.
-
-Order the findings by reversibility. Break a tie by category, in the order **Decision → Integration
-point → Risk-Unknown → Open question**.
-
-## Confidence (both kinds)
-
-**Confidence** has three values. High means verified in code. Medium means likely, with some
-inference. Low means suspected, and it needs checking. For a feature, confidence measures how sure
-you are of the claim about the *existing* code the finding rests on.
-
-## 01-summary.md  (shared skeleton)
-
-The fields and `Issue in one paragraph` are shared. The **Findings index** columns and the
-**Documents** block come from the kind's template file.
+## Complete skeleton
 
 ```md
-# Issue Analysis — <issue title or short ref>
+# Issue Analysis: <issue title or short ref>
 
 - **Issue:** <#N / URL / "pasted description">
 - **Kind:** bug | feature
 - **Date:** <YYYY-MM-DD>
-- **Scope:** small | large  (fan-out: none | N subagents)
+- **Scope:** small | large; <N files>, <N modules or areas>
+- **Fan-out:** none | <N subagents>
 
-## Issue in one paragraph
+## Issue
 
-<bug: goal + expected behavior / acceptance criteria, distilled.
- feature: what the feature must do + acceptance criteria + explicit non-goals.>
+<Distilled goal and expected behavior or acceptance criteria.
+For a feature, include explicit non-goals when the issue states them.>
 
-## Findings index
+## Current state
 
-<the kind's index table — see BUG_TEMPLATES.md or FEATURE_TEMPLATES.md>
-
-## Documents
-
-<the kind's Documents block — see BUG_TEMPLATES.md or FEATURE_TEMPLATES.md>
-
-This report stops at analysis — nothing here has been implemented.
-```
-
-## 02-current-state.md  (shared)
-
-```md
-# Current State
-
-## Affected surface
+### Affected surface
 
 | File | Role |
 |------|------|
-| `path/to/file.go:42` | what it does / why it's relevant |
+| `path/to/file.go:42` | What it does and why it is relevant |
 
-## How it works today
+### How it works today
 
-<bug: the relevant flow / data model / control path, narrated against the issue's goal.
- feature: the seams the feature plugs into, the patterns similar features already follow here,
- and the reuse candidates (existing helpers/abstractions to lean on).
-Enough context that doc 3's findings stand on their own.>
+<For a bug, describe the relevant flow, data model, or control path.
+For a feature, describe the connection points, existing patterns, and reuse candidates.>
+
+## Findings
+
+<Use the index for the issue kind. Omit the index and detailed sections when no findings exist.
+In that case, write only: No findings were identified.>
+
+<!-- Bug index -->
+| ID | Title | Category | Severity | Confidence | Location |
+|----|-------|----------|----------|------------|----------|
+| F-01 | <short title> | Bug | High | High | `path:line` |
+
+<!-- Feature index. Use — for an open question without a code anchor. -->
+| ID | Title | Category | Reversibility | Confidence | Location |
+|----|-------|----------|---------------|------------|----------|
+| F-01 | <short title> | Decision | Architecture | High | `path:line` |
+
+### F-01: <bug finding title>
+
+- **Category:** Gap | Bug | Risk
+- **Severity:** Critical | High | Medium | Low
+- **Confidence:** High | Medium | Low
+- **Location:** `path/to/file:line` (related: `path:line`, ...)
+
+#### What the code does today
+
+<Observed behavior, with short evidence and a precise reference.>
+
+#### Why it is a problem
+
+<Impact, trigger, and affected users or systems. Tie it to the issue goal when relevant.>
+
+#### Suggested change
+
+<What to change and why. An approach or pseudocode is sufficient.>
+
+#### Effort / notes
+
+<Rough effort, dependencies, alternatives, or open questions.>
+
+### F-01: <feature finding title>
+
+- **Category:** Decision | Integration point | Risk-Unknown | Open question
+- **Reversibility:** Architecture | Module-shape | Local | —
+- **Confidence:** High | Medium | Low | —
+- **Location:** `path/to/file:line` (related: `path:line`, ...) | issue text
+
+#### Context
+
+<The code or requirement that forces this finding. Include short evidence and a precise reference.>
+
+#### Options
+
+<Decision findings only. Omit this heading for other categories.>
+
+- **A: <name>.** <Approach and trade-off.>
+- **B: <name>.** <Approach and trade-off.>
+
+#### Recommendation
+
+<The selected option and why, the exact connection point, or the resolution path.>
+
+#### Sequencing / notes
+
+<Dependencies, what this blocks, and what must be resolved before implementation.>
 ```
+
+Use one detailed section per finding. Use the section variant for the issue kind. Continue IDs as
+`F-02`, `F-03`, and so on. A pure requirement or open question can cite the issue text.

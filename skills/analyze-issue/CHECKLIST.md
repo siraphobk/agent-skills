@@ -7,9 +7,9 @@ There are two lens sets. The **issue kind** picks the set, in Step 0 of [SKILL.m
 - **Feature:** use the readiness-to-build lenses further down. You ask *what must this do, where
   does it connect, and what do I decide*.
 
-The process is the same for both kinds. That covers the modes, the gates, the fan-out, the subagent
-contract, and severity normalization. Only the lens set, the finding categories, and the report
-schema change.
+The process is the same for both kinds. That covers the modes, gates, fan-out, subagent contract,
+and normalization. Only the lens set, finding categories, ordering value, and finding sections
+change.
 
 # Bug / investigation lenses
 
@@ -83,16 +83,15 @@ Lens breadth follows the mode (`deep` ⊇ `default` ⊇ `quick`):
   area.
 
 **Subagent contract:** pass each agent the surface map, so the agent does not discover the files
-again. The agent **returns** concise findings: location, short evidence, why, proposed suggestion,
-and provisional severity. The agent does **not** write report files. The orchestrator dedupes the
-findings, normalizes severity, and writes the report by editing the returned material. The
-orchestrator does not read the code again.
+again. The agent returns concise material for one report: location, short evidence, why, proposed
+recommendation, and provisional severity or reversibility. The agent does not write `report.md`.
+The orchestrator dedupes the findings, normalizes their ordering values, and assembles the report
+from the returned material. The orchestrator does not read the code again.
 
 **Model per subagent (token control):** a single-lens scan is narrow. Default it to `sonnet`. Use
 `haiku` for the simplest lenses, such as tests and observability. Reserve Opus for the merge and
 triage the orchestrator does, not for the fan-out. The plan presented at Gate 2 names the model, so
 the user can override it.
 
-Findings land in doc 3 of the report. The `F-NN` key ties each finding to its recommendation in
-doc 4. The bug report and the feature report share that structure. See
-[TEMPLATES.md](TEMPLATES.md) for both variants.
+Each finding and its recommendation stay together in one `F-NN` section of `report.md`. See
+[TEMPLATES.md](TEMPLATES.md) for both issue-kind variants.

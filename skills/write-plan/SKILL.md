@@ -8,16 +8,14 @@ description: Draft an implementation plan (feature, fix, refactor) or findings w
 
 ## Workflow
 
-1. **Collect the inputs.** Take the goal, the constraints, and any code findings
-   already in chat. Read the `analyze-issue` report when one exists, which is a
-   directory under `.agents/scratch/issue-analysis/` that the user names or
-   points at. Its `03-gaps-bugs-risks.md` and `04-improvement-suggestions.md` are
-   the raw material, and `02-current-state.md` seeds the **Now** lines of
-   Approach. Ask which findings (`F-NN`) the plan must address when that is not
-   settled. Investigate no further, because the material must already exist in
-   chat or in the report. Ask one or two questions when there is not enough to
-   draft from. Stop and say so when the job is a findings writeup with nothing to
-   record.
+1. **Collect the inputs.** Take the goal, constraints, and code findings already in chat. When an
+   `analyze-issue` report exists, read the exact
+   `.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/report.md` path the user names. Use the
+   selected findings' recommendations as raw material. Use `## Current state` to seed the **Now**
+   lines in Approach. Ask which findings (`F-NN`) the plan must address when that is not settled.
+   Investigate no further, because the material must already exist in chat or the report. Ask one
+   or two questions when there is not enough to draft. Stop when the job is a findings writeup
+   with nothing to record.
 
 2. **Assess the scope.** Decide which output fits, and prefer the simpler one:
    - **Single plan** *(default, most jobs)*: one cohesive change a single phased
@@ -27,10 +25,9 @@ description: Draft an implementation plan (feature, fix, refactor) or findings w
      lifecycles. A rollout that would grow into many phases across unrelated areas
      also counts. Each workstream becomes its own standalone sub-plan, with its
      own goal, files, verification, and execution.
-   - **Reuse the scope estimate from an analyze-issue report when one exists.**
-     The *areas* in the report are the candidate workstreams. Several distinct
-     areas with independent rollouts make an epic. One area makes a single plan,
-     whatever the number of phases.
+   - **Reuse the report scope or areas when an analyze-issue report exists.** Distinct areas with
+     independent rollouts are candidate workstreams. Several such areas make an epic. One area
+     makes a single plan, whatever the number of phases.
    - **The check:** a long phased rollout *in one area* is still one plan. Only
      multiple independent workstreams justify an epic. Prefer a single plan when
      the case is borderline, and say why.
