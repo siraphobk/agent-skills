@@ -15,7 +15,7 @@ One paragraph. State the problem this plan addresses, and what "done" looks
 like. Frame it around the change or the outcome, not around a question under
 investigation. When the plan comes from an analyze-issue report, name the
 finding IDs it addresses (e.g. "fixes F-01, F-03, F-07"). Link the exact
-`report.md` file as well.
+analysis report path as well.
 
 ## Non-goals
 
@@ -237,7 +237,7 @@ that run.
 Stripe retries webhooks, so a flaky handler can charge a customer's wallet
 twice. Done means a redelivered event with the same idempotency key is a no-op.
 A regression test proves it. Fixes F-02 from
-`.agents/scratch/issue-analysis/2026-06-20-webhook-dupes/report.md`.
+`.agents/scratch/analysis/2026-06-20-webhook-dupes.md`.
 
 ## Non-goals
 

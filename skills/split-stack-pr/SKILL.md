@@ -31,7 +31,7 @@ The diff shows *what* changed. It never shows *why*. The why decides the cut lin
 
 1. **Ask the user outright:** "Is there a plan, analysis, design doc, RFC, or ticket for this work?
    Point me at it."
-2. **Search the repo:** `.agents/scratch/plans/`, `.agents/scratch/issue-analysis/`, `PLAN.md`,
+2. **Search the repo:** `.agents/scratch/plans/`, `.agents/scratch/analysis/*.md`, `PLAN.md`,
    `docs/`, `rfcs/`, `design/`, `*.plan.md`, `ADR-*.md`.
 3. **If the branch has an open PR**, read it and anything it links: `gh pr view --json
    body,title,url`, then `gh issue view {n}` per issue mentioned.

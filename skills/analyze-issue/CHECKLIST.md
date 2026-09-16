@@ -84,7 +84,7 @@ Lens breadth follows the mode (`deep` ⊇ `default` ⊇ `quick`):
 
 **Subagent contract:** pass each agent the surface map, so the agent does not discover the files
 again. The agent returns concise material for one report: location, short evidence, why, proposed
-recommendation, and provisional severity or reversibility. The agent does not write `report.md`.
+recommendation, and provisional severity or reversibility. The agent does not write the report file.
 The orchestrator dedupes the findings, normalizes their ordering values, and assembles the report
 from the returned material. The orchestrator does not read the code again.
 
@@ -93,5 +93,5 @@ from the returned material. The orchestrator does not read the code again.
 triage the orchestrator does, not for the fan-out. The plan presented at Gate 2 names the model, so
 the user can override it.
 
-Each finding and its recommendation stay together in one `F-NN` section of `report.md`. See
+Each finding and its recommendation stay together in one `F-NN` section of the report file. See
 [TEMPLATES.md](TEMPLATES.md) for both issue-kind variants.

@@ -1,7 +1,7 @@
 # Report Template
 
 Default and deep analyses write one file:
-`.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/report.md`.
+`.agents/scratch/analysis/<YYYY-MM-DD-HHMM>-<slug>.md`.
 
 Use the skeleton below for both issue kinds. Keep evidence and the recommendation in the same
 finding section. Write no full implementation.

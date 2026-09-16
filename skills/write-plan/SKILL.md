@@ -10,12 +10,12 @@ description: Draft an implementation plan (feature, fix, refactor) or findings w
 
 1. **Collect the inputs.** Take the goal, constraints, and code findings already in chat. When an
    `analyze-issue` report exists, read the exact
-   `.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/report.md` path the user names. Use the
-   selected findings' recommendations as raw material. Use `## Current state` to seed the **Now**
-   lines in Approach. Ask which findings (`F-NN`) the plan must address when that is not settled.
-   Investigate no further, because the material must already exist in chat or the report. Ask one
-   or two questions when there is not enough to draft. Stop when the job is a findings writeup
-   with nothing to record.
+   `.agents/scratch/analysis/<YYYY-MM-DD-HHMM>-<slug>.md` path the user names. Use the selected
+   findings' recommendations as raw material. Use `## Current state` to seed the **Now** lines in
+   Approach. Ask which findings (`F-NN`) the plan must address when that is not settled. Investigate
+   no further, because the material must already exist in chat or the report. Ask one or two
+   questions when there is not enough to draft. Stop when the job is a findings writeup with nothing
+   to record.
 
 2. **Assess the scope.** Decide which output fits, and prefer the simpler one:
    - **Single plan** *(default, most jobs)*: one cohesive change a single phased

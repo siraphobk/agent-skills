@@ -42,7 +42,7 @@ Some take an argument to pick a mode:
 A typical run through the chain:
 
 ```
-"analyze issue 412"          -> .agents/scratch/issue-analysis/
+"analyze issue 412"          -> .agents/scratch/analysis/<YYYY-MM-DD-HHMM>-<slug>.md
 "grill me on that"           -> decisions resolved, no files
 "plan it"                    -> .agents/scratch/plans/
 "execute the plan"           -> code, plus .agents/scratch/deliverables/

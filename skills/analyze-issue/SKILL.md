@@ -6,7 +6,7 @@ description: >
   explore the current state, find gaps, bugs, and risks, and suggest a fix approach for each.
   Feature: survey where the feature plugs in, the patterns to follow, the design decisions,
   integration points, and risks. It writes no code. In default/deep modes it writes one compact
-  report under .agents/scratch/issue-analysis/ and fans out lens-based subagents on a large surface;
+  report under `.agents/scratch/analysis/<YYYY-MM-DD-HHMM>-<slug>.md` and fans out lens-based subagents on a large surface;
   quick mode answers in chat only. Use before starting work on an issue — when the user says "analyze this
   issue", "explore the codebase for this issue", "assess the current state of <X>", "what gaps/risks
   exist for issue <N>", "how should I build this feature", or wants a pre-change survey. NOT for
@@ -116,8 +116,7 @@ You reconcile duplicates and conflicts.
 ## Step 5: Deliver
 
 **`quick` mode:** answer in chat. Give the relevant lenses you ran, a findings table, and the
-recommendation per finding inline. Write no files. Offer a handoff to `write-plan` if the user wants
-the answer saved.
+recommendation per finding inline. Write no files.
 
 **`default` and `deep` modes:** write one compact report. Assemble it by **editing the findings the
 subagents returned**. Do not re-read the code you already scanned.
@@ -125,7 +124,7 @@ subagents returned**. Do not re-read the code you already scanned.
 **Gate 3 fires here** (large scope, and always `deep`). See [GATES.md](GATES.md). Present its table
 before writing the file. A small scope goes straight to the write step.
 
-Create `.agents/scratch/issue-analysis/<YYYY-MM-DD-HHMM>-<slug>/report.md`. The complete skeleton,
+Create `.agents/scratch/analysis/<YYYY-MM-DD-HHMM>-<slug>.md`. The complete skeleton,
 kind-specific finding sections, and ordering scales are in [TEMPLATES.md](TEMPLATES.md).
 
 Keep each finding's evidence and recommendation together in its `F-NN` section. Then show the
@@ -139,9 +138,3 @@ findings table and the exact report path in chat.
 - **Fan-out ownership:** subagents report material. You dedupe, reconcile, and write.
 - **Handoff:** a finding may be a reproducible bug the user wants fixed *now*. Then hand it to the
   `diagnose` skill, which builds a repro loop and fixes one bug. This skill stays at analysis.
-- **Next step:** recommend the `write-plan` skill after you deliver the report or quick-mode answer.
-  **Give `write-plan` the exact `report.md` path and name the findings (`F-NN`) the plan should
-  address.** `write-plan` uses each selected finding's recommendation as raw material, `## Current
-  state` for the **Now** lines, and the report scope or areas for its single-plan-vs-epic decision.
-  `execute-plan` then runs the plan gate by gate. The full chain is **analyze-issue → write-plan →
-  execute-plan**. Recommend it. Do not invoke it automatically.

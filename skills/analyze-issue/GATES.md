@@ -19,7 +19,7 @@ Ask about an unrecognized word. Do not guess.
 
 | Mode | When | Behavior |
 |------|------|----------|
-| `quick` | you want a fast read | Single pass. **No subagents.** Only the lenses **most relevant to the issue**, named at the start. **All gates skipped.** **Chat only, no files.** Offer a `write-plan` handoff if the user wants the answer saved. |
+| `quick` | you want a fast read | Single pass. **No subagents.** Only the lenses **most relevant to the issue**, named at the start. **All gates skipped.** **Chat only, no files.** |
 | `default` *(or none)* | normal use | **Scope-driven.** A small scope runs a single pass. A large scope uses lens fan-out. Runs all **applicable** lenses, and prunes the ones that clearly do not apply. Gate 1 always fires. Gates 2 and 3 fire on a large scope only. Writes one compact report. |
 | `deep` | high stakes, maximum coverage | **Full lens fan-out**, every lens, even the marginal ones. Escalates to a **matrix** (one subagent per area and lens pair) only when there is more than one distinct area. Gates 1, 2, and 3 all fire. Writes one compact report. |
 
@@ -44,7 +44,7 @@ Gates control **agent and write spend**. They fire by mode and scope, as below.
   plan and **wait for a go** before you start any subagent. This is the main token gate. The user
   can trim lenses, drop to a single pass, cap the subagent count, or change the model.
 - **Gate 3, triage.** It fires on a large scope, and always in `deep`. Show the compact findings
-  table before you write `report.md`. Include ID, category, severity or reversibility, confidence,
+  table before you write the report file. Include ID, category, severity or reversibility, confidence,
   and location. Let the user drop noise and low-priority items.
 
 The steps in [SKILL.md](SKILL.md) only mark *where* a gate fires. This section is the single source
