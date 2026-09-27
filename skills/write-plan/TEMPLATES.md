@@ -1,8 +1,12 @@
 # write-plan templates
 
-This file holds the full templates the skill drafts from. It also holds a worked
-example for calibration. SKILL.md keeps only the section skeletons inline. Copy
-the complete structure from here.
+This file defines the plan sections, phase fields, progress markers, and omission
+rules. SKILL.md defines the workflow. Use these templates and the worked example
+when you draft.
+
+Omit sections that would contain only filler. Implementation plans always need
+Acceptance criteria, Phased rollout, and Verification. Omit implementation-only
+sections for a pure findings writeup with nothing to execute.
 
 ## Required template (single plan, and each sub-plan)
 
@@ -40,9 +44,10 @@ to execute.
 
 ## Approach
 
-Open with one or two short paragraphs in plain English. Give the overall shape
-of the change, and the one or two tradeoffs that matter. Put no code here, only
-the reasoning. Give no alternatives, unless the user asked for them.
+Open with one or two short paragraphs. State the overall change and the tradeoffs
+that matter. Define the terms, assumptions, and precedence rules needed to execute
+the plan. Keep this context in the file, not only in chat. Put rationale here,
+not implementation code. Discuss alternatives only when the user asks.
 
 Then write one block per change. Give each block an ID (`C-1`, `C-2`, …). A
 phase can then point at that block instead of a repeat of it. Each block pairs
@@ -77,32 +82,37 @@ per-change blocks there, and keep only the design paragraphs.
 
 ## Phased rollout
 
-Numbered phases. Make each one independently revertible where that is possible.
-One phase is one commit-sized change. Every phase heading starts with a `[ ]`
-marker, and execute-plan flips that marker to `[x]` as each gate passes.
-execute-plan parses the format of the heading line, so keep it exact. The fields
-below the heading are what the executing agent works from.
+Use numbered phases. Each phase delivers one coherent behavior with a checkable
+stopping point. Make each phase independently revertible where possible. Split
+unrelated concerns, not changes that must work together. File count is a review
+signal, not a split rule.
 
-Every phase carries these four fields, in this order:
+Keep reproduction, the regression test, and the fix in one phase for a bug.
+Require evidence that the test fails for the reported behavior before the fix
+and passes afterward. An expected failure is an intermediate observation, not
+the phase gate. The completed phase must pass its gate and required repository
+checks.
+
+Keep the heading and `[ ]` marker format shown below. execute-plan changes the
+marker to `[x]` after the gate passes. Use these fields in this order:
 
 - **Files:** every path the phase touches, with `(new)` on the files it creates.
   Do not write "and related callers". Find those callers now, and name them.
-- **Does:** the work, at symbol level. Point at the Approach block (`apply C-2`)
-  instead of a restatement of it. A phase is under-specified when a fresh agent
-  cannot execute it without a second read of Approach. Name the existing helper
-  to call (`db/pg.go:IsUniqueViolation`), so the agent does not write it again.
+- **Does:** explicit actions, symbols, and dependencies on earlier phases.
+  Reference Approach blocks for rationale, not as a substitute for actions.
+  A fresh agent must be able to execute the phase from the complete plan.
+  Name existing helpers such as `db/pg.go:IsUniqueViolation` to reuse them.
 - **Don't touch:** nearby code that stays as it is, and why. Omit the field when
   nothing is genuinely at risk.
-- **Gate:** a copy-pasteable command plus its expected result. A gate that is
-  only prose lets an agent declare a pass without a run of anything. Mark the
-  gate `(manual)` when no command fits, and describe the observation.
+- **Gate:** a copy-pasteable command plus its expected successful result.
+  Use `(manual)` only when no command fits, and describe the required observation.
 
 When the plan addresses analyze-issue findings, name the IDs each phase fixes
 next to the ACs it advances.
 
 1. **[ ] Phase 1 — <name>** (AC-1, fixes F-01)
    **Files:** `path/a.go:88-140`, `path/a_test.go` (new)
-   **Does:** apply C-1 — <what to do, naming the symbols>.
+   **Does:** <actions, symbols, and prerequisites>. See C-1 for rationale.
    **Don't touch:** <what stays as-is, and why>
    **Gate:** `<command>` → <expected result>
 
@@ -111,11 +121,11 @@ next to the ACs it advances.
 
 ## Verification
 
-End-to-end check after every phase is complete. execute-plan runs this section
-**verbatim**. So write copy-pasteable commands (`go test ./pricing/...`), not
-prose ("run the test suite"). A line here must prove every acceptance criterion.
-Tag each line with the ACs it covers. Manual checks are fine when no command
-fits. Mark them `(manual)`. Omit the section when the plan is purely analytical.
+Run the end-to-end checks after all phases are complete. execute-plan runs this
+section verbatim. Write copy-pasteable commands, not instructions such as "run
+the test suite". Cover every acceptance criterion and tag each check with its
+ACs. Use `(manual)` when no command fits. Omit this section for a pure findings
+writeup with nothing to execute.
 
 - `<command>` → <expected result> (AC-1, AC-3)
 - (manual) <observation> (AC-2)
@@ -211,12 +221,15 @@ run.
 **Right:**
 
 ```md
-2. **[ ] Phase 2 — dedupe in handler** (AC-1, AC-2, fixes F-02)
-   **Files:** `billing/webhook.go:88-140`
-   **Does:** apply C-1 — in `handleEvent`, open a tx before the ledger write and
-   insert the idempotency key first. When `db/pg.go:IsUniqueViolation` matches
-   the insert error, roll the tx back and return 200 with no ledger row.
-   **Don't touch:** `billing/charge.go` — the payments path already dedupes.
+1. **[ ] Phase 1 — dedupe in handler** (AC-1, AC-2, fixes F-02)
+   **Files:** `billing/webhook.go:88-140`, `billing/webhook_test.go` (new)
+   **Does:** add `TestWebhookDedupe` to assert one ledger row and two HTTP 200
+   responses for repeated delivery. Run `go test ./billing/ -run TestWebhookDedupe`
+   before the fix. Confirm failure reports a duplicate row, not a fixture error.
+   In `handleEvent`, put the key insert and ledger write in one transaction.
+   Insert the key first. When `db/pg.go:IsUniqueViolation` matches that insert,
+   roll back the transaction and return 200. See C-1 for rationale.
+   **Don't touch:** `billing/charge.go`. The payments path already dedupes.
    **Gate:** `go test ./billing/...` → PASS, including `TestWebhookDedupe`.
 ```
 
@@ -282,33 +295,28 @@ return a 200 with no write.
 billing/webhook_test.go  (new)
 ```
 **Change** — `TestWebhookDedupe` sends the same event through `handleEvent`
-twice. It asserts a single ledger row, and a 200 on both calls.
+twice. After each call, it asserts one ledger row and HTTP 200.
 
 ## Phased rollout
 
-1. **[ ] Phase 1 — failing regression test** (AC-1, fixes F-02)
-   **Files:** `billing/webhook_test.go` (new)
-   **Does:** apply C-2 — build the event with `newStripeEvent`, call
-   `handleEvent` twice, assert `SELECT count(*) FROM ledger` returns 1.
-   **Don't touch:** `billing/webhook.go` — the fix lands in Phase 2.
-   **Gate:** `go test ./billing/ -run TestWebhookDedupe` → FAILS with
-   "want 1 row, got 2" (the real bug, not a compile or fixture error).
-
-2. **[ ] Phase 2 — dedupe in handler** (AC-1, AC-2, AC-3)
-   **Files:** `billing/webhook.go:88-140`
-   **Does:** apply C-1 — in `handleEvent`, open a tx before the ledger write and
-   insert the idempotency key first. When `IsUniqueViolation` matches the insert
-   error, roll the tx back and return 200 with no ledger row.
-   **Don't touch:** `billing/charge.go` — the payments path already dedupes.
-   **Gate:** `go test ./billing/...` → PASS, `TestWebhookDedupe` included.
+1. **[ ] Phase 1 — dedupe webhook deliveries** (AC-1, AC-2, AC-3, fixes F-02)
+   **Files:** `billing/webhook.go:88-140`, `billing/webhook_test.go` (new)
+   **Does:** add `TestWebhookDedupe` with an empty ledger fixture.
+   Build the event with `newStripeEvent` and call `handleEvent` twice.
+   After each call, assert one ledger row and HTTP 200.
+   Run `go test ./billing/ -run TestWebhookDedupe` before the fix.
+   Confirm it fails with "want 1 row, got 2", not a compile or fixture error.
+   Then put the key insert and ledger write in one transaction in `handleEvent`.
+   Insert the key first. When `db/pg.go:IsUniqueViolation` matches that insert,
+   roll back the transaction and return 200. See C-1 and C-2 for rationale.
+   **Don't touch:** `billing/charge.go`. The payments path already dedupes.
+   **Gate:** `go test ./billing/...` → PASS, including `TestWebhookDedupe`.
 
 ## Verification
 
-- `go test ./billing/...` → PASS (AC-1, AC-3)
-- (manual) POST the same event id twice against a local server. Both return 200,
-  and `select count(*) from ledger` stays at 1 (AC-2)
-
-## Open questions
-
-- Retain idempotency keys forever, or prune after 30 days? (non-blocking)
+- `go test ./billing/...` → PASS (AC-1, AC-2, AC-3)
+- (manual) Use a local server with an isolated test database and an empty ledger.
+  POST one event, then POST it again with the same event ID.
+  Both responses return 200. After each POST, `select count(*) from ledger`
+  returns 1. (AC-1, AC-2, AC-3)
 ````

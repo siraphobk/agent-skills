@@ -11,9 +11,9 @@ This repo holds agent skills that run in **both Claude Code and Cursor**. One
 3. Bundle extra files beside it: `references/`, `scripts/`, `assets/`, or plain `.md`
    files in the skill folder. A skill that bundles files needs `Read` in `allowed-tools`,
    or the agent is told to open something it may not open.
-4. Keep `SKILL.md` under 150 lines and `description` under 1024 characters. Both are
-   silent failures when broken: an over-long description is truncated, and the tail is
-   the `NOT for X` boundary that stops two skills fighting over the same request.
+4. Keep `SKILL.md` under 200 lines. Aim for fewer than 150 and move detail into bundled files.
+   Keep `description` under 1024 characters so truncation does not remove its `NOT for X` boundary.
+   `scripts/validate.sh` enforces both limits.
 5. Run `scripts/validate.sh`. It must exit 0.
 
 Nothing else to register. Both manifests scan `skills/` by default, so a new folder is

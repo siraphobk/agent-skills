@@ -44,7 +44,7 @@ The sibling skills are the real spec. Read one before you write a draft.
 
 ```
 <name>/
-├── SKILL.md        # required — under 150 lines
+├── SKILL.md        # required, under 200 lines, preferably under 150
 ├── TEMPLATES.md    # the exact output shape, if the skill produces a document
 ├── EXAMPLES.md     # one worked example at the right density
 └── scripts/        # only for deterministic work (parsing, validation, file I/O)
@@ -102,11 +102,10 @@ failure mode is vagueness.
   root.
 - **Write it the way you want to read it.** Use 6th-grade words. Give the why
   before the what. Name a concrete path instead of "the relevant file".
-- **Keep it under 150 lines, or split it.** Extra content goes to a bundled
-  file, one level deep. Never add a second hop. Every skill here fits. If a
-  draft does not fit, look at the extra content. It is almost always an output
-  template, an API payload shape, or a block of tool mechanics. Each of those
-  wants its own bundled file anyway. Move them before you ask for an exception.
+- **Aim for fewer than 150 lines. Keep the file under 200.**
+  The validator rejects files with 200 lines or more.
+  Move templates, API payloads, and tool mechanics into bundled files, one level deep.
+  Never add a second hop.
 - **No dates, versions, or "currently".** A skill that ages is a skill that lies.
 - **Draft to the budget.** When a target has a stated size limit, write to that
   limit on the first pass. A long draft that you then trim wastes edits and

@@ -42,11 +42,7 @@ REF_VERBS="use|via|invoke|hand off to|handed off to|offer"
 # over-long description is truncated, and the tail is the NOT-for boundary that keeps two
 # skills from fighting over the same request. Overflow belongs in a bundled file.
 MAX_DESC=1024
-# 200, not 150. Skill bodies are written in Simplified Technical English, which
-# splits a long sentence into several short ones. The same content then needs
-# about 10% more lines. write-plan sets the real floor at 197, because it carries
-# 19 constraints and three output shapes, and `## Constraints` must stay in
-# SKILL.md as bullets. Every other skill still lands under 165.
+# Allow room for short sentences while keeping templates and examples in bundled files.
 MAX_LINES=200
 
 # Paths that name one agent. A skill must not contain these; see CLAUDE.md.
