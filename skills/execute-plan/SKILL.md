@@ -36,26 +36,17 @@ design from chat. Do not re-investigate settled decisions. A plan target has one
    **Sequencing & dependencies** section.
    - **Pick the next sub-plan.** Take the first one still marked `[ ]` whose dependencies are
      already `[x]`. Obey the sequencing. Never start a sub-plan whose blockers are unfinished.
-   - **Confirm the start, always, one time.** One confirmation covers both the sub-plan and its
-     start phase. State which sub-plan you intend to run. State which phase it starts at. A fresh
-     sub-plan starts at Phase 1. A resumed sub-plan starts at its first `[ ]` phase. State what is
-     already done. Then **wait for explicit approval**. Do not add step 3's separate phase confirm
-     after it. That asks the same question two times.
-   - Execute that sub-plan with the per-plan loop (steps 3–7). Read the sub-plan as its own source
-     of truth. Step 3's confirm is already covered. Confirm again mid-plan only if the markers you
-     find contradict what you announced.
+   - **Run the ready sub-plan.** Identify its first `[ ]` phase. A fresh sub-plan starts at Phase 1.
+     A resumed sub-plan starts at its first `[ ]` phase. Execute that sub-plan with the per-plan loop
+     (steps 3–7). Read the sub-plan as its own source of truth.
    - **After a sub-plan is complete:** flip its box to `[x]` in the **Sub-plans** index of
-     `00-epic.md`. Then fill that sub-plan's sections in the shared epic deliverable (step 8). Then
-     return here for the next sub-plan. Confirm each sub-plan. Do not chain sub-plans without a
-     prompt.
+     `00-epic.md`. Then fill that sub-plan's sections in the shared epic deliverable (step 8). Return
+     here and run the next ready sub-plan. Do not pause for approval between sub-plans.
    - When every sub-plan is `[x]`, run the epic's **Global verification** (step 7). Then complete
      the epic-level deliverable sections (step 8). Then stop.
 
-3. **Confirm the start phase, always (single plans).** Check the Phased rollout for existing
-   progress markers (see step 5). Identify the first `[ ]` phase. State which phase you intend to
-   start at, and what is already done. Then **wait for explicit approval before you touch code.**
-   Never start execution on your own, even when you resume a plan that is clearly half finished. In
-   an epic, step 2's confirmation already named the start phase. Skip this confirm and continue.
+3. **Identify the start phase (single plans).** Check the Phased rollout for existing progress
+   markers (see step 5). Identify the first `[ ]` phase. Execute it without requesting approval.
 
 4. **Report blockers first.** If the plan's Open questions section has items tagged `(blocking)`,
    ask them before you touch code. You note the `(non-blocking)` items and settle them during the
@@ -73,8 +64,8 @@ design from chat. Do not re-investigate settled decisions. A plan target has one
      for the affected language.
    - **Obey the Gate.** Run the Gate's command. Compare the output against the expected result the
      Gate states. Never declare a gate passed from inspection alone. For a `(manual)` gate, report
-     exactly what the user must observe. Then stop and wait for approval before the next phase.
-     Never run two phases past a gate at one time.
+     exactly what the user must observe and stop for the result. After an automatic gate passes,
+     continue to the next phase without requesting approval.
 
 6. **Mark progress and record what landed.** After a phase passes its gate, do both of these, in
    this order:
@@ -122,9 +113,9 @@ the earlier phases is exactly what a context reset would have lost.
 - **The plan governs scope.** Reality can differ from the plan, because a file moved or an
   assumption was wrong. Stop and report the mismatch. Do not improvise a redesign. Small course
   corrections inside a phase are fine. Structural changes go back to write-plan.
-- **One phase per gate, one confirmation per sub-plan start.** Checkpoints are the whole point. Do
-  not batch phases. Do not chain sub-plans automatically. Do not stack duplicate confirms. Each of
-  those defeats the checkpoints.
+- **One phase per gate.** Complete each phase, pass its gate, and record it before the next phase.
+  Run ready sub-plans in dependency order. Continue automatically unless a blocker or manual gate
+  needs user input.
 - **Obey epic sequencing.** Never start a sub-plan whose dependencies are not `[x]`. If the
   Sequencing section is ambiguous, ask. Do not guess the order.
 - **No plan, no skill.** If nothing is under `.agents/scratch/plans/`, say so and offer to run
