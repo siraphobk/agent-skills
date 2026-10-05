@@ -38,6 +38,12 @@ Some take an argument to pick a mode:
 | `analyze-issue` | `quick` \| `default` \| `deep`, and `bug` \| `feature` | how wide the survey goes, and which report shape it writes |
 | `research-solutions` | `quick` \| `default` \| `deep` | how far the research fans out |
 | `where-am-i` | `brief` \| `full` | `brief` is the crucial facts; `full` adds other checkouts, artifacts, and full machine detail |
+| `github-pr-review` | `standard` \| `guided` | `standard` gives review findings. `guided` explains one concept per turn after context gathering and approval. |
+
+For a guided review, say "walk me through PR 123" or "review PR 123 in guided mode".
+The skill gathers related documentation, issues, and discussions before it proposes objectives and a concept map.
+It then waits for approval and explains each concept through its purpose, implementation, verification, and assessment.
+Use `standard` explicitly when you want the regular review flow. Review style does not change GitHub posting approval.
 
 A typical run through the chain:
 

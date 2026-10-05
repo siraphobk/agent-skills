@@ -3,6 +3,8 @@
 Use this mode for a PR too large to hold in one pass. Everything in `SKILL.md` still applies.
 That includes the gates, the correctness → maintainability → performance hierarchy, and the
 batched posting. This file adds the machinery that keeps a review of a large diff on track.
+Chunking applies to both review styles. Guided mode explains concepts within each chunk and pauses after each concept.
+Use the concept loop defined by the main skill. Do not duplicate its instructions here.
 
 ## When to switch to this mode
 
@@ -39,8 +41,8 @@ split:
   wiring and config that joins them. A break in shared infra invalidates everything downstream,
   so find it early.
 
-Create one tracked task per chunk with `TaskCreate`. Progress then survives a long review and any
-context compaction. A typical carve:
+Track one task per chunk with the available task tracker. Preserve its files, dependencies, status, and findings across turns.
+A typical grouping follows:
 
 | Chunk | Rationale |
 |-------|-----------|
@@ -51,8 +53,8 @@ context compaction. A typical carve:
 
 ## Per-chunk loop
 
-Work through the chunks in order. Write the result of each chunk directly into the review file.
-Do not hold it all in chat. A big review scrolls away and risks compaction. Each chunk gets:
+Work through chunks in dependency order. Keep their results in chat unless the user approves a review file.
+After approval, save each chunk as it completes. Each chunk records:
 
 - **Files reviewed:** an explicit list. The reader needs to know the boundary.
 - **What changed:** 2–4 lines.
@@ -61,9 +63,10 @@ Do not hold it all in chat. A big review scrolls away and risks compaction. Each
 - **Findings:** each finding gets a **`path:line` or `path:start-end`** anchor, so another
   engineer goes directly to it. Give every finding a severity tag.
 
-Mark the task done. Then start the next chunk. Explain every cross-chunk interaction explicitly.
-For example, the infra chunk sets a balancer default. That default is safe only because the
-publisher overrides it in the feature chunk. Say so, and give both refs.
+In standard mode, mark the task complete and start the next chunk.
+In guided mode, mark it complete only after its concepts and questions are settled. Wait for explicit continuation before the next chunk.
+Keep the concept progress map within each chunk. Explained concepts do not imply verified objectives.
+Explain cross-chunk dependencies with references to both sides. Revisit earlier assessments when later evidence changes their assumptions.
 
 ## Spec / ADR conformance
 
@@ -71,8 +74,8 @@ A feature spec, a design doc, or an ADR can govern the change. You find it in St
 the user. It often lives in a *separate* docs repo. When such a doc governs the change, make
 conformance a first-class artifact:
 
-1. Build a table: **requirement → impl `path:line` → ✓ / ✗ / partial**. Cover the wire contract,
-   the invariants, and any MUST/SHOULD clauses.
+1. Map each requirement to implementation anchors and a conformance status. Include contracts, invariants, and every governing MUST/SHOULD clause.
+   In guided mode, add verification evidence and allow `unverified`. Reuse the report's objective assessment instead of duplicating requirements.
 2. **Verify that named anchors still exist.** A doc that names a file, a function, a flag, or a
    field makes a claim about a past state. Confirm that claim against the checked-out code before
    you trust it.

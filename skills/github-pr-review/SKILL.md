@@ -1,20 +1,21 @@
 ---
 name: github-pr-review
-allowed-tools: Read Write Grep Glob Task Bash(gh *) Bash(git *) Bash(mkdir *)
-description: Deep, step-by-step code review of a GitHub Pull Request. Checks out the PR (current dir or a worktree under .worktrees/), collects project docs and PR/issue context, shows an understanding brief, then reviews in a correctness → maintainability → performance order and gives findings graded by severity. Large PRs switch to a chunked, blast-radius-ordered mode with per-chunk findings and optional spec/ADR conformance checking. Use when the user invokes this skill directly or says "let's review a PR on github", "review this PR", "do a code review on PR <n>", or similar intent to review a GitHub pull request.
+allowed-tools: Read Write Grep Glob Task WebFetch Bash(gh *) Bash(git *) Bash(mkdir *)
+description: Reviews a GitHub Pull Request with the user. Collects related documentation, issues, and discussions before an understanding gate, then checks correctness, maintainability, performance, and verification evidence. Standard mode delivers severity-ranked findings. Guided mode builds a concept map and explains one concept per turn through its objective, implementation, verification, and assessment. Large PRs use coherent review chunks. Use for "review this PR", "review PR <n>", "walk me through this PR", or "help me understand this PR". NOT for pre-implementation analysis (use analyze-issue) or general code-smell searches (use find-smells).
+argument-hint: "[PR number or URL] [standard|guided]"
 ---
 
 # GitHub PR Review
 
-You run this deep, step-by-step PR review together with the user. **Stop at every gate. Never
-continue until the user says go.**
+Review the PR with the user. Stop at every gate until the user gives explicit approval.
 
-- Use **`gh`** to read the PR body, the issues, the diff, and the files. The commands are
-  `gh pr view`, `gh issue view`, and `gh pr diff`.
-- Use **`git`** for local code work. That covers the checkout, the diffs, and the file reads.
+`standard` is the default. Select `guided` when the user asks for a walkthrough or help to understand the PR.
+An explicit style takes precedence over phrasing. Read [GUIDED.md](GUIDED.md) before Step 2 in guided mode.
+Review style does not change checkout modes, review scope, severity rules, or posting approval.
 
-Get the PR first. If the user did not give a number or a URL, ask for one. Find `owner`/`repo`
-with `git remote get-url origin`.
+Use `gh` for GitHub metadata and `git` for checkout mechanics. Read local files and use `WebFetch` for linked documentation.
+
+Get the PR first. Ask for a number or URL only if missing. Find `owner`/`repo` with `git remote get-url origin`.
 
 ## Step 0: Find the repo
 
@@ -36,28 +37,27 @@ against the checked-out PR code.
 
 ## Step 2: Collect project docs
 
-Search near the PR, not the whole monorepo:
-- Use `gh pr diff {number} --name-only` to find the directories the PR changes.
-- For each changed dir, search inside it. Then search each parent dir **up to the repo root**.
-  Search for `*.md`, `README*`, `docs/`, `ADR*`, `CONTEXT.md`, and service `README` files. Always
-  include the repo-root docs `AGENTS.md`, `CLAUDE.md`, and top-level `docs/`.
-- List the **names only** first. Discard the names that do not matter. Then read **only** the few
-  files that look useful.
-- Then **ask the user** for any related docs the search would miss. A governing **feature spec or
-  ADR often lives in a separate docs repo**. The file search cannot reach that repo. If such a doc
-  governs this change, plan a conformance check (see [BIG_PR.md](BIG_PR.md) → Spec / ADR
-  conformance).
+Gather context before detailed review. Use repository instructions already supplied by the host.
+In mode C, skip documentation discovery and report unavailable context at the Ready gate.
+- Use `gh pr diff {number} --name-only` to locate affected directories, not to read implementation hunks.
+- List document names in affected directories, their parents, and root documentation. Read relevant sections, not unrelated documentation.
+- Find feature specifications, architecture decisions, API contracts, domain rules, service guides, and operational documentation.
+- Follow relevant references from documents and PR metadata, including accessible external documentation and related repositories.
+- Record source paths or URLs, requirement references, conflicts, and access limits. Do not assume documentation matches the implementation.
+- Gather available context before asking the user. Ask only when an inaccessible gap prevents a sound review.
+
+Context is sufficient when objectives, expected behavior, constraints, non-goals, and verification criteria are clear.
+Record remaining gaps at the Ready gate. Never invent requirements to complete the brief.
 
 ## Step 3: Understand the PR
 
 - Read the PR: `gh pr view {number} --json number,title,body,state,author,headRefName,baseRefName,headRefOid`
 - Read every linked or mentioned issue: `gh issue view {issue_number} --json number,title,body,comments`. Note the acceptance criteria of each issue.
-- **Read the review already on the PR before you write your own:**
-  `gh api repos/{owner}/{repo}/pulls/{number}/comments` and `.../reviews`. Existing comments
-  change what you write. **Reply in an existing thread** when your finding lands on the same line
-  or the same topic. Do not open a new thread there. Say plainly when an existing comment is
-  wrong. A question addressed to you there is a reply you owe, whatever your findings are.
-- Summarize what the PR **says** it does. Add the **testable criteria** the PR must meet.
+- Read existing inline comments and reviews with `gh api repos/{owner}/{repo}/pulls/{number}/comments` and `.../reviews`.
+  Account for existing discussion. Reply in an existing thread for the same topic, subject to posting approval.
+  Identify incorrect comments and questions addressed to you before preparing findings.
+- Read related issue discussions and linked design decisions. Separate documented requirements, PR claims, and inferred intent.
+- Summarize the claimed objective and testable criteria. Identify important failure behavior and evidence needed to verify each criterion.
 
 ## Step 4: Ready gate (understanding brief)
 
@@ -65,15 +65,17 @@ Show a short brief. Then **wait for the user to say go clearly**:
 
 | Section | What to show |
 |---|---|
-| **Intent** | 1–3 sentences on what the PR does. |
-| **Acceptance criteria** | The criteria from the linked issues. |
-| **Docs consulted** | The names of the docs. |
-| **Planned scope** | Files ranked as read in full, skim the diff, or skip as generated. |
-| **Conformance** | A note that you will check the code against the governing doc. |
-| **Open questions** | Anything unclear about intent or scope, to settle now. |
+| **Intent** | Objective, expected behavior, constraints, and non-goals, with sources. |
+| **Acceptance criteria** | Testable requirements and important failure behavior. Label inferred criteria. |
+| **Docs consulted** | Source paths or URLs and relevant requirement references. |
+| **Planned scope** | Files to read, skim, or skip as generated. For large PRs, show coherent chunks. |
+| **Concepts** | In guided mode, a provisional concept map, dependencies, and walkthrough order. |
+| **Verification** | Evidence needed for each objective, including runtime scenarios where relevant. |
+| **Conformance** | Governing specification or architecture decision, when one applies. |
+| **Open questions** | Conflicting sources, access limits, and gaps. Identify which gaps block judgment. |
 
-Show the **Conformance** row only when a spec or ADR governs the change. For a large PR, show
-**Planned scope** as the **chunk carve-up** (see Step 5 → Big PRs).
+In guided mode, derive the provisional map from context and file names. Confirm it against implementation after approval.
+Stop for blocking context gaps. Proceed with non-blocking gaps only after the user accepts the stated limits.
 
 Do not read the diff until the user says go.
 
@@ -88,16 +90,11 @@ Sort the files first, to spend tokens well. Get the file list with `gh pr diff {
   the scope in silence.
 - For files you read deeply, read the **whole file**, not only the unified diff.
 
-**Big PRs use chunked mode.** Switch to chunked mode when the diff is large or crosses
-subsystems. Large means more than about 10 files or about 800 changed lines. The chunked,
-blast-radius-first flow lives in [BIG_PR.md](BIG_PR.md). That flow has four parts:
+In guided mode, follow the concept loop in [GUIDED.md](GUIDED.md). Explain one concept, then wait for explicit continuation.
+Keep the value hierarchy below. A walkthrough changes explanation and pacing, not review rigor.
 
-1. Carve the PR into coherent chunks. Review shared infra first.
-2. Review each chunk in the same correctness → maintainability → performance order.
-3. Write per-chunk findings into the review file after each chunk, with `path:line` or
-   `path:range` anchors.
-4. Add a conformance table when a spec or ADR applies. That table can re-rank severity.
-
+**Big PRs use chunks.** Apply [BIG_PR.md](BIG_PR.md) above about 10 files, 800 changed lines, or across subsystems.
+Group files by purpose and dependencies. Guided mode uses concept checkpoints within those chunks.
 
 Rank every finding by this **value hierarchy**. A lower tier never beats a higher tier.
 
@@ -129,6 +126,7 @@ rollback viability, data-loss risk, and index strategy. Never accept one after a
 Use [TEMPLATE.md](TEMPLATE.md). The default is **chat first**. Show the report with each finding
 and its `file:line`. Then **review the findings with the user one by one**. The user accepts or
 drops each finding before anything leaves the session.
+In guided mode, include the objective assessment from [TEMPLATE.md](TEMPLATE.md). Distinguish observed evidence from unverified claims.
 
 **How to save:** chat only by default. Offer to write `.agents/scratch/reviews/pr-<number>.md`
 when the user asks. In worktree mode, **offer to save without a request from the user**. Chat can

@@ -8,6 +8,7 @@
 > range. **Big-PR mode** (see `BIG_PR.md`) adds two optional sections below: a **Chunk map** and
 > a **Spec conformance** table. Use them only when you chunk the PR, or when a governing spec
 > applies.
+> Guided mode adds an objective assessment. It records evidence, not just walkthrough completion.
 
 ## Context
 
@@ -15,8 +16,9 @@
 - **Author:** <author>
 - **Linked issues:** #<id> (<one-line title>), …
 - **Claimed intent:** <1–3 sentences: what the PR says it does>
-- **Acceptance criteria:** <from linked issues, if any. Bullet the testable ones>
-- **Docs consulted:** <relative/path.md>, … (or "none found")
+- **Acceptance criteria:** <testable requirements with sources. Label inferred criteria>
+- **Docs consulted:** <paths or URLs with relevant sections, or "none found">
+- **Context limits:** <conflicting sources, unavailable documentation, and accepted non-blocking gaps>
 
 ## Chunk map
 
@@ -27,10 +29,31 @@
 | A | <shared infra, review first> | `pkg/...`, … | ✅ / pending |
 | B | <core feature logic> | `…/domain`, `…/app` | … |
 
+## Objective assessment
+
+Use this section in guided mode. It is optional in standard mode.
+Cover every objective from the approved brief. Include governing clauses when a specification or architecture decision applies.
+Keep objective IDs stable across the walkthrough and final report.
+
+| Objective and source | Implementation | Verification evidence | Assessment |
+|---|---|---|---|
+| O1: <required behavior and source> | `path/to/file.go:line` | <assertion, observed scenario, or evidence gap> | <status and reason> |
+
+- **met:** Evidence establishes the required behavior, including relevant failure conditions.
+- **partially met:** Evidence establishes only some conditions. Name the unmet or uncertain part.
+- **not met:** Evidence demonstrates a requirement violation. Cite the finding or mismatch.
+- **unverified:** Available evidence cannot establish whether the objective holds. Name the missing evidence.
+
+Distinguish source inspection, tests inspected, observed execution, and author-reported results.
+For observed execution, record the scenario, expected result, actual result, and evidence source.
+Never label an unrun test as passing. A passing suite alone does not establish runtime behavior.
+Walkthrough completion measures review coverage, not correctness.
+
 ## Spec conformance
 
 > Use this section only when a feature spec or ADR governs the change. Verify that each anchor
 > still exists in the code.
+If the objective assessment covers all governing clauses, omit this duplicate table and retain any severity reassessment below.
 
 | Requirement (doc §) | Impl | ✓ |
 |---------------------|------|---|
