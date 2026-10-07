@@ -1,6 +1,5 @@
 ---
 name: github-pr-create
-model: sonnet
 allowed-tools: Read Write Bash(gh *) Bash(git branch *) Bash(git remote *) Bash(git log *) Bash(git diff *) Bash(git rev-parse *) Bash(git rev-list *) Bash(git for-each-ref *) Bash(git merge-base *) Bash(git push *) Bash(grep *) Bash(awk *) Bash(sort *) Bash(find *) Bash(ls *) Bash(mkdir *)
 description: >
   Interactive workflow to draft and create GitHub Pull Requests from the current branch using gh — a

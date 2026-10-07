@@ -88,8 +88,8 @@ recommendation, and provisional severity or reversibility. The agent does not wr
 The orchestrator dedupes the findings, normalizes their ordering values, and assembles the report
 from the returned material. The orchestrator does not read the code again.
 
-**Model per subagent (token control):** a single-lens scan is narrow. Default it to `sonnet`. Use
-`haiku` for the simplest lenses, such as tests and observability. Reserve Opus for the merge and
+**Model per subagent (token control):** a single-lens scan is narrow. Default it to an inherited model. Use
+smaller for the simplest lenses, such as tests and observability. Reserve Opus for the merge and
 triage the orchestrator does, not for the fan-out. The plan presented at Gate 2 names the model, so
 the user can override it.
 

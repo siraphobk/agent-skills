@@ -77,5 +77,5 @@ Scope:     large (surface = 14 files, 3 modules)
 Mode:      lens fan-out
 Lenses:    correctness, concurrency, data-integrity, error-handling
            [skipping: security (no untrusted input), perf (not a hot path)]
-Subagents: 4   (model: sonnet)
+Subagents: 4   (model: <chosen-model-name>)
 ```

@@ -1,6 +1,5 @@
 ---
 name: github-issue-write
-model: sonnet
 allowed-tools: Bash(gh *) Bash(git remote *) Bash(git rev-parse *) Bash(ls *) Bash(grep *) Bash(mkdir *) Read Write
 description: >
   Interactive workflow to draft and create a GitHub Issue in the current project using gh. Detects

@@ -1,6 +1,5 @@
 ---
 name: github-issue-pickup
-model: sonnet
 allowed-tools: Read Bash(gh *) Bash(git checkout *) Bash(git worktree *) Bash(git rev-parse *) Bash(git remote *) Bash(git config *) Bash(mkdir *) Bash(grep *)
 description: >
   Interactive workflow to browse and claim a GitHub issue using gh. Lists open issues (yours first),
