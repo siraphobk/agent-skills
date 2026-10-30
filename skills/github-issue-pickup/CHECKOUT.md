@@ -9,10 +9,10 @@ git rev-parse --show-toplevel
 
 ## Worktree
 
-Follow the worktree setup convention in [[coding/worktree-setup]]. It has three parts: the
-`.worktrees/` ignore rule, the flattened dir name, and the `core.bare` check. The
-`core.bare` check runs immediately after the add. Here the add also creates the branch, so
-a separate fetch is not necessary:
+Create the worktree under `.worktrees/` with a flat directory name. Replace every `/` in the
+branch name with `--`. Never nest directories under `.worktrees/`. Here the add also creates
+the branch, so a separate fetch is not necessary. Run the `core.bare` check immediately after
+the add:
 
 ```bash
 git worktree add {project_root}/.worktrees/{prefix}-{number}--{short_description} -b {prefix}-{number}/{short_description}

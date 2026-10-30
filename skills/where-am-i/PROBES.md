@@ -49,11 +49,11 @@ find <parent> -maxdepth 5 \
 
 Then take the branch and the dirty count of each directory that holds a hit.
 
-**Five levels, not one.** A linked worktree lives at `<repo>/.worktrees/<type>/<name>`.
-That path is five levels below the parent. A branch name with a slash in it adds one
-more level. A worktree is the clearest sign of a session that somebody left open.
-A scan that cannot reach one misses the exact thing this section must find. Five is
-the floor that reaches them, and not a round number.
+**Five levels, not one.** A linked worktree lives at `<repo>/.worktrees/<name>`, and `<name>`
+never contains a `/`. That path is four levels below the parent. The fifth level reaches
+older worktrees that were nested as `<type>/<name>`. A worktree is the clearest sign of a
+session that somebody left open. A scan that cannot reach one misses the exact thing this
+section must find.
 
 **The two `-prune` clauses keep the scan cheap.** The `.git` prune stops the walk
 before it descends into every object directory, which is nearly all the cost. The
