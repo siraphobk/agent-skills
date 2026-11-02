@@ -1,8 +1,8 @@
 ---
 name: github-pr-review
 allowed-tools: Read Write Grep Glob Task WebFetch Bash(gh *) Bash(git *) Bash(mkdir *)
-description: Reviews a GitHub Pull Request with the user. Collects related documentation, issues, and discussions before an understanding gate, then checks correctness, maintainability, performance, and verification evidence. Standard mode delivers severity-ranked findings. Guided mode builds a concept map and explains one concept per turn through its objective, implementation, verification, and assessment. Large PRs use coherent review chunks. Use for "review this PR", "review PR <n>", "walk me through this PR", or "help me understand this PR". NOT for pre-implementation analysis (use analyze-issue) or general code-smell searches (use find-smells).
-argument-hint: "[PR number or URL] [standard|guided]"
+description: Reviews a GitHub Pull Request with the user. Collects related documentation, issues, and discussions before an understanding gate, then checks correctness, maintainability, performance, and verification evidence. Every report starts with a change summary of what changed and why. Standard mode delivers severity-ranked findings. Guided mode builds a concept map and explains one concept per turn through its objective, implementation, verification, and assessment. Summary mode delivers only the change summary, without findings. Large PRs use coherent review chunks. Use for "review this PR", "review PR <n>", "walk me through this PR", "help me understand this PR", "summarize this PR", or "what does PR <n> change and why". NOT for pre-implementation analysis (use analyze-issue) or general code-smell searches (use find-smells).
+argument-hint: "[PR number or URL] [standard|guided|summary]"
 ---
 
 # GitHub PR Review
@@ -10,8 +10,9 @@ argument-hint: "[PR number or URL] [standard|guided]"
 Review the PR with the user. Stop at every gate until the user gives explicit approval.
 
 `standard` is the default. Select `guided` when the user asks for a walkthrough or help to understand the PR.
-An explicit style takes precedence over phrasing. Read [GUIDED.md](GUIDED.md) before Step 2 in guided mode.
-Review style does not change checkout modes, review scope, severity rules, or posting approval.
+Select `summary` when the user asks only what a PR changes and why, without a review.
+An explicit style takes precedence over phrasing. Read [GUIDED.md](GUIDED.md) or [SUMMARY.md](SUMMARY.md) before Step 2 in that style.
+Review style does not change checkout modes or posting approval. Summary mode grades no findings.
 
 Use `gh` for GitHub metadata and `git` for checkout mechanics. Read local files and use `WebFetch` for linked documentation.
 
@@ -75,6 +76,7 @@ Show a short brief. Then **wait for the user to say go clearly**:
 | **Open questions** | Conflicting sources, access limits, and gaps. Identify which gaps block judgment. |
 
 In guided mode, derive the provisional map from context and file names. Confirm it against implementation after approval.
+In summary mode, show only Intent, Planned scope, and Open questions.
 Stop for blocking context gaps. Proceed with non-blocking gaps only after the user accepts the stated limits.
 
 Do not read the diff until the user says go.
@@ -92,6 +94,7 @@ Sort the files first, to spend tokens well. Get the file list with `gh pr diff {
 
 In guided mode, follow the concept loop in [GUIDED.md](GUIDED.md). Explain one concept, then wait for explicit continuation.
 Keep the value hierarchy below. A walkthrough changes explanation and pacing, not review rigor.
+In summary mode, read for what changed and why, with the same file ranking. [SUMMARY.md](SUMMARY.md) covers defects you notice.
 
 **Big PRs use chunks.** Apply [BIG_PR.md](BIG_PR.md) above about 10 files, 800 changed lines, or across subsystems.
 Group files by purpose and dependencies. Guided mode uses concept checkpoints within those chunks.
@@ -123,10 +126,11 @@ rollback viability, data-loss risk, and index strategy. Never accept one after a
 
 ## Step 6: Deliver findings
 
-Use [TEMPLATE.md](TEMPLATE.md). The default is **chat first**. Show the report with each finding
-and its `file:line`. Then **review the findings with the user one by one**. The user accepts or
+Use [TEMPLATE.md](TEMPLATE.md). The default is **chat first**. Start with the change summary. Then show each finding
+with its `file:line`. Then **review the findings with the user one by one**. The user accepts or
 drops each finding before anything leaves the session.
 In guided mode, include the objective assessment from [TEMPLATE.md](TEMPLATE.md). Distinguish observed evidence from unverified claims.
+In summary mode, follow [SUMMARY.md](SUMMARY.md) for delivery. It has no findings and posts nothing.
 
 **How to save:** chat only by default. Offer to write `.agents/scratch/reviews/pr-<number>.md`
 when the user asks. In worktree mode, **offer to save without a request from the user**. Chat can

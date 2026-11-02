@@ -9,6 +9,7 @@
 > a **Spec conformance** table. Use them only when you chunk the PR, or when a governing spec
 > applies.
 > Guided mode adds an objective assessment. It records evidence, not just walkthrough completion.
+> Summary mode uses only the Context and Change summary sections. See `SUMMARY.md`.
 
 ## Context
 
@@ -19,6 +20,28 @@
 - **Acceptance criteria:** <testable requirements with sources. Label inferred criteria>
 - **Docs consulted:** <paths or URLs with relevant sections, or "none found">
 - **Context limits:** <conflicting sources, unavailable documentation, and accepted non-blocking gaps>
+
+## Change summary
+
+Write this section in every mode, after you read the implementation. A reader who stops here
+must know what the PR does and why, without the diff. Do not copy the PR body.
+
+**Why:** <The problem, who it affects, and why now. 1–3 sentences with sources. Label inferred
+reasons as inferred.>
+
+**What changed:**
+- <A behavior change, stated as what a user or caller now sees> — `path:line`
+- <3–7 bullets in order of importance. Group by behavior, not by file. One bullet can cover
+  several files>
+- <Last bullet: refactors, renames, generated code, and test-only changes, in one line>
+
+**What did not change:** <Scope limits that a reader could assume wrongly. For example, "the API
+contract stays the same". Drop this line when nothing is ambiguous.>
+
+**Claim vs. code:** <Places where the PR body or the issue disagrees with the diff. Write "none
+found" when they agree.>
+
+**Read first:** <2–3 anchors, each with one reason, for a reader who has 5 minutes>
 
 ## Chunk map
 
@@ -84,35 +107,67 @@ the area it breaks, so the priority is clear. The tags are `correctness`, `tests
 - `tests` means missing or weak coverage. It is a correctness concern. It is Should-fix most of
   the time, and Blocker on invariant-heavy or domain code.
 
-**Every finding has two labelled layers.** Never ship only one layer. A bare summary is too terse
-to act on with confidence. Detail with no summary hides the point.
+**Every finding uses one labelled shape.** Each part answers one question. Never repeat a fact
+from an earlier part.
 
-1. **`**Where:**` line.** Put the `path:line` anchors first, so the reader goes directly there.
-2. **`**SUMMARY**`.** Use 5 sentences at most. State the defect, its impact, and the fix
-   direction. End on a `Fix:` clause. A reader who stops here can still act.
-3. **`**DETAILED EXPLANATION**`.** Give the mechanism, the evidence, the constraints, and the
-   cross-references. Use bolded mini-headings such as `**How it happens.**`, `**Why it is not a
-   blocker.**`, and `**Implementation notes.**`. Use a table where the evidence is enumerable.
-   Drop this layer, heading and all, when there is nothing more to say. That is common for a nit.
+| Part | Question it answers |
+|---|---|
+| Header title | What is wrong, as a complete claim |
+| `**Where:**` | Where the reader goes first: the `path:line` or `path:start-end` anchors |
+| `**Problem:**` | What goes wrong, for which input, and who sees it |
+| `**Why it happens:**` | The code path, step by step |
+| `**Evidence:**` | How we know: source inspection, tests inspected, observed execution, or author report |
+| `**Why this severity:**` | Why the grade is right, when it is not obvious |
+| `**Fix:**` | The direction, the preferred option and its reason, and what must not change |
 
-Both labels go on their own line, with a blank line after. The two layers then stay visually
-separate when the detail runs long.
+- **The title is a claim, not a topic.** Write "`GetOrder` panics when the cache holds a deleted
+  customer", not "nil deref". A reader who scans only the titles sees every problem.
+- **Explain so the reader does not need to open the code.** Name the function, the input, the
+  state, and the result. Use concrete values. Define an uncommon term once. Show a snippet when
+  it makes the code path clear.
+- **There is no length limit.** Each sentence must add a fact. Give the strongest reason for a
+  claim, then stop. Use a table when the evidence is enumerable.
+- **Leave out a part that has nothing to say.** A nit often needs only Where, Problem, and Fix.
+  Always keep Where, Problem, and Fix.
+- **Start each label on its own paragraph.** Keep technical terms and identifiers. Plain is not
+  vague.
 
-**Density rules for both layers.** Write plain English. Give no preamble and no recap. Keep the
-technical terms and code (race, nil, N+1, invariant, identifiers, `snippets`). Plain ≠ vague.
-**One reason per claim:** give the strongest reason, then stop. The same point argued three ways
-is padding. Detail earns its place with *new* information: a mechanism, a table, a constraint, or
-the line that settles it. Detail never earns its place as a longer restatement of the summary.
+A worked example with fictional code:
+
+~~~~markdown
+#### B1 — `GetOrder` panics when the cache holds a deleted customer · `correctness`
+
+**Where:** `order/service.go:88`, `cache/customer.go:41-47`
+
+**Problem:** A request for an order whose customer was deleted makes the handler panic on a nil
+pointer. The client gets a 500 response, and every retry fails the same way. All orders of
+deleted customers are affected.
+
+**Why it happens:** When the database returns no row, `cache/customer.go:41-47` stores `nil`. A
+later lookup then returns `(nil, true)`. `order/service.go:88` checks only the `ok` flag, and then
+reads `c.Name` on the nil pointer.
+
+```go
+c, ok := s.cache.Get(id)
+if ok {
+    name = c.Name // c is nil for a deleted customer
+}
+```
+
+**Evidence:** Source inspection only. No test covers a deleted customer. The scenario was not run.
+
+**Fix:** Stop caching `nil` in `cache/customer.go`. This is better than a nil check at line 88,
+because three other callers use the same lookup. Keep the cache key format the same, because the
+eviction job parses it.
+~~~~
 
 ## Posting keeps this exact shape
 
-**An inline comment is the finding, whole.** It keeps `**Where:**`, `**SUMMARY**`,
-`**DETAILED EXPLANATION**`, the mini-headings, the tables, and the code blocks. Do NOT compress
-it into prose for the narrow column of GitHub. That compression looks like a reasonable call, and
-it is not one. It costs three things:
+**An inline comment is the finding, whole.** It keeps the `**Where:**` line, every labelled part,
+the tables, and the code blocks. Do NOT compress it into prose for the narrow column of GitHub.
+That compression looks like a reasonable call, and it is not one. It costs two things:
 - It drops the anchor list, so the other files a finding touches become invisible.
-- It removes the labelled stopping point, so the reader must read all of it.
-- It dissolves the mini-headings that let someone skip to "what it affects".
+- It removes the labels that let a reader go straight to the part they need, such as the fix.
 
 The shape *is* the deliverable. A reader on the PR must see what a reader of the saved report
 sees. Length is fine. GitHub renders long comments without complaint.
@@ -144,7 +199,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/reviews -X POST --input - << 'PAYLOAD
   "event": "COMMENT",
   "body": "<verdict, severity table, and what's good>",
   "comments": [
-    {"path": "file.go", "line": 123, "side": "RIGHT", "body": "**B1 · Blocker · `correctness`** — nil deref when the cache misses\n\n**Where:** …\n\n**SUMMARY**\n\n…"}
+    {"path": "file.go", "line": 123, "side": "RIGHT", "body": "**B1 · Blocker · `correctness`** — `GetOrder` panics when the cache holds a deleted customer\n\n**Where:** …\n\n**Problem:** …"}
   ]
 }
 PAYLOAD
@@ -162,53 +217,48 @@ PAYLOAD
 
 ### 🔴 Blockers
 
-#### B1 — <short title> · `correctness` | `security`
+#### B1 — <the defect as a complete claim> · `correctness` | `security`
 
 **Where:** `path/to/file.go:123`, `path/to/other.go:45`
 
-**SUMMARY**
+**Problem:** <What goes wrong, for which input, and who sees it: wrong result, data loss, auth
+bypass, or broken invariant.>
 
-<The defect and its impact: wrong result, data loss, auth bypass, or broken invariant. Then the
-direction. 5 sentences at most. Fix: <minimal direction, not a rewrite>.>
+**Why it happens:** <The code path, step by step, and the exact call that misbehaves. Add a
+snippet when it helps.>
 
-**DETAILED EXPLANATION**
+**Evidence:** <Source inspection, tests inspected, observed execution, or author report. Label
+what is not verified.>
 
-**<How it happens.>** <the mechanism: the code path, and the exact call that misbehaves>
-
-**<What it affects.>** <scope: which services or callers. Use a table when enumerable>
-
-**<Implementation notes.>** <constraints on the fix: bounds, ordering, what must NOT change>
+**Fix:** <The minimal direction, not a rewrite. The preferred option and why. What must not
+change.>
 
 ### 🟡 Should-fix
 
-#### S1 — <short title> · `maintainability` | `correctness`
+#### S1 — <the problem as a complete claim> · `maintainability` | `correctness`
 
 **Where:** `path/to/file.go:45`
 
-**SUMMARY**
+**Problem:** <What goes wrong, and its cost to the next maintainer.>
 
-<The problem, its cost to the next maintainer, and the direction. Fix: <direction>.>
+**Why it happens:** <The code path or design that causes it.>
 
-**DETAILED EXPLANATION**
+**Evidence:** <How we know.>
 
-**<Why it is not a blocker.>** <what limits the damage. This is often the most useful line in the finding>
+**Why this severity:** <What limits the damage, so it is not a blocker. The remaining risk that
+makes it worth fixing.>
 
-**<Why it is still worth fixing.>** <the residual risk or cost>
+**Fix:** <Direction and constraints.>
 
 ### 🔵 Nits
 
-#### N1 — <short title> · `style` | `performance`
+#### N1 — <the problem as a complete claim> · `style` | `performance`
 
 **Where:** `path/to/file.go:9`
 
-**SUMMARY**
+**Problem:** <One or two sentences. A perf issue that is not a priority lives here.>
 
-<One or two sentences. Non-blocking. A perf issue that is not a priority lives here.>
-
-**DETAILED EXPLANATION**
-
-<Only when there is more to say. For example, why you do NOT recommend the obvious bigger change.
-Otherwise omit this heading and its content entirely.>
+**Fix:** <Direction. Add why you do NOT recommend the obvious bigger change, when that applies.>
 
 ## What is good
 
